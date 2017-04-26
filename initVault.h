@@ -9,10 +9,11 @@
 #include <regex.h>
 
 #include "vaultDataStructures.h"
+#include "parseUserInput.h"
 
 int initVault (int argc, char **argv);
 
-ssize_t parseNumberOfBytesFromFormat(char* dataAmount);
 int initRepoMetaData(RepoMetaData *repoMetaData, char** argv);
+int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData FileAllocationTable[MAX_NUM_FILES]);
 
 #endif

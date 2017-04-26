@@ -8,6 +8,14 @@
 #include <unistd.h>
 #include <time.h>
 
+#include "initVault.h"
+#include "listFiles.h"
+#include "addFile.h"
+#include "removeFile.h"
+#include "fetchFile.h"
+#include "defragVault.h"
+#include "getVaultStatus.h"
+
 typedef enum OperationType {
 	INIT_VAULT,
 	LIST_FILES,

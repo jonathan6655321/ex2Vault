@@ -15,13 +15,10 @@
 #define END_OF_FILE_DELIMITER >>>>>>>>
 #define MAX_BLOCKS_PER_FILE 3
 
-#define KILO 1024
-#define MEGA 1048576
-#define GIGA 1073741824
-
 typedef struct RepoMetaData 
 {
 	ssize_t repositoryTotalSize;
+	ssize_t sizeOfAllFilesInRepo;
 	time_t creationTimeStamp;
 	time_t lastModificationTimeStamp;
 	short numFilesInVault;
@@ -35,7 +32,7 @@ typedef struct DataBlock
 
 typedef struct FileMetaData // AKA FileAllocationTableEntry
 {
-	char* fileName;
+	char fileName[MAX_CHARS_IN_FILE_NAME];
 	ssize_t fileSize;
 //	st_mode fileProtection;
 	time_t insertionDateStamp;

@@ -4,20 +4,20 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <regex.h>
+
 
 #include "initVault.h"
+#include "vaultIO.h"
+
 
 #define INIT_NUM_ARGUMENTS 4
 #define MIN_BYTES_FOR_DATA 0
 
 int initVault (int argc, char **argv)
 {
-	printf("hey i am in initVault.c\n\n");
-
 	if(argc != INIT_NUM_ARGUMENTS)
 	{
-		printf("Error: invalid number of arguments\n\n");
+		printf("Error: invalid number of arguments for init\n\n");
 		return -1;
 	}
 
@@ -32,7 +32,7 @@ int initVault (int argc, char **argv)
 	RepoMetaData repoMetaData;
 	if(initRepoMetaData(&repoMetaData, argv) == -1)
 	{
-		printf("Error: couldn't initialize the repoMetaData")
+		printf("Error: couldn't initialize the repoMetaData\n\n");
 		return -1;
 	}
 
@@ -40,72 +40,38 @@ int initVault (int argc, char **argv)
 
 	if(isRepositoryTotalSizeSufficient(repoMetaData, FileAllocationTable) == -1)
 	{
-		printf("Error: repository-total-size request not large enough");
+		printf("Error: repository-total-size request not large enough\n\n");
 		return -1;
+	}
+
+	if(writeRepoMetaDataToVault(repoMetaData, vaultFileDescriptor) < 0)
+	{
+		printf("Error: failed to write RepoMetaData to vault\n\n");
+		return -1;
+	}
+
+	close(vaultFileDescriptor);
+
+	int fd = open( repoName , O_RDONLY , 0777);
+
+	RepoMetaData testRepo;
+	getRepoMetaDataFromVault(testRepo, fd);
+
+	printf("new value: %zd \n\nold value: %zd", testRepo.repositoryTotalSize , repoMetaData.repositoryTotalSize);
+
+	close(fd);
+	if(testRepo.repositoryTotalSize != repoMetaData.repositoryTotalSize)
+	{
+		printf("total size wrong\n\n");
+	}else
+	{
+		printf("my name a borat!\n\n");
 	}
 
 
 
 
 	return 1;
-}
-
-
-ssize_t parseNumberOfBytesFromFormat(char* dataAmount)
-{
-	size_t num;
-	char c;
-
-	const char *forRegex = dataAmount;
-	regex_t regex;
-	int reti;
-
-	/* Compile regular expression */
-	reti = regcomp(&regex, "^[1-9]{1}[0-9]*[a-zA-Z]$", REG_EXTENDED);
-	if (reti) {
-		fprintf(stderr, "Could not compile regex\n\n");
-		return 0;
-	}
-
-	/* Execute regular expression */
-	reti = regexec(&regex, forRegex, 0, NULL, 0);
-	if (!reti) {
-		sscanf(dataAmount, "%zd %c", &num, &c);
-	}
-	else
-	{
-		printf("Error: data amount argument in wrong format or regex execution error\n\n");
-		return 0;
-	}
-
-	/* Free memory allocated to the pattern buffer by regcomp() */
-	regfree(&regex);
-
-	// printf("Data amount result: number is: %d and type is: %c\n\n", num, c);
-
-	if (c == 'K')
-	{
-		num*=KILO;
-	} else if (c == 'M')
-	{
-		num*=MEGA;
-	} else if (c=='G')
-	{
-		num*=GIGA;
-	} else if (c=='B')
-	{
-
-	} else
-	{
-		num = 0;
-	}
-
-	 printf("total number of bytes requested is: %zd\n\n", num);
-
-	if(num==0)
-		printf("Error: data amount argument in wrong format\n\n");
-
-	return num;
 }
 
 int initRepoMetaData(RepoMetaData *repoMetaData, char** argv)
@@ -120,19 +86,16 @@ int initRepoMetaData(RepoMetaData *repoMetaData, char** argv)
 	(*repoMetaData).creationTimeStamp = (*repoMetaData).lastModificationTimeStamp
 			= time(NULL);
 
-
-//	struct tm tm = *localtime(&t);
-//	printf("Time is: %d-%d-%d %d:%d:%d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-
+	(*repoMetaData).sizeOfAllFilesInRepo = 0;
 	(*repoMetaData).numFilesInVault = 0;
 
 	return 1;
 }
 
 // assumes repoMetaData and FAT are initialized
-int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData *FileAllocationTable)
+int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData FileAllocationTable[MAX_NUM_FILES])
 {
-	ssize_t catalogSize = (sizeof(repoMetaData) + sizeof(FileAllocationTable));
+	ssize_t catalogSize = (sizeof(repoMetaData) + sizeof(FileAllocationTable[0])*MAX_NUM_FILES);
 	if(repoMetaData.repositoryTotalSize < catalogSize + MIN_BYTES_FOR_DATA)
 	{
 		return -1;
@@ -140,5 +103,4 @@ int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData *Fil
 	{
 		return 1;
 	}
-
 }
