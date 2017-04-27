@@ -15,6 +15,10 @@
 #define END_OF_FILE_DELIMITER >>>>>>>>
 #define MAX_BLOCKS_PER_FILE 3
 
+#define REPO_META_DATA_SIZE sizeof(RepoMetaData)
+#define FILE_META_DATA_SIZE sizeof(FileMetaData)
+#define FILE_ALLOCATION_TABLE_SIZE sizeof(FileMetaData)*MAX_NUM_FILES
+
 typedef struct RepoMetaData 
 {
 	ssize_t repositoryTotalSize;

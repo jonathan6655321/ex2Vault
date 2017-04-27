@@ -21,13 +21,6 @@ int initVault (int argc, char **argv)
 		return -1;
 	}
 
-	char* repoName = argv[1];
-	int vaultFileDescriptor = open( repoName , O_WRONLY | O_CREAT, 0777);
-	if(vaultFileDescriptor == -1)
-	{
-		printf("Error: couldn't open the vault file\n\n");
-		return -1;
-	}
 
 	RepoMetaData repoMetaData;
 	if(initRepoMetaData(&repoMetaData, argv) == -1)
@@ -36,39 +29,40 @@ int initVault (int argc, char **argv)
 		return -1;
 	}
 
-	FileMetaData FileAllocationTable[MAX_NUM_FILES];
+	FileMetaData FileAllocationTable[MAX_NUM_FILES]; // TODO needed??
 
+	// TODO refactor, so receives only ssize argument
 	if(isRepositoryTotalSizeSufficient(repoMetaData, FileAllocationTable) == -1)
 	{
 		printf("Error: repository-total-size request not large enough\n\n");
 		return -1;
 	}
 
-	if(writeRepoMetaDataToVault(repoMetaData, vaultFileDescriptor) < 0)
+	char* vaultName = argv[1];
+	int vaultFileDescriptor = createEmptyVaultFile(vaultName, repoMetaData.repositoryTotalSize);
+	if(vaultFileDescriptor < 0 )
+	{
+		printf("Error: couldn't open the vault file\n\n");
+		return -1;
+	}
+
+	if(writeRepoMetaDataToVault(&repoMetaData, vaultFileDescriptor) < 0)
 	{
 		printf("Error: failed to write RepoMetaData to vault\n\n");
 		return -1;
 	}
 
 	close(vaultFileDescriptor);
-
-	int fd = open( repoName , O_RDONLY , 0777);
+	int fd = open( vaultName , O_RDWR , 0777);
 
 	RepoMetaData testRepo;
-	getRepoMetaDataFromVault(testRepo, fd);
+	getRepoMetaDataFromVault(&testRepo, fd);
 
-	printf("new value: %zd \n\nold value: %zd", testRepo.repositoryTotalSize , repoMetaData.repositoryTotalSize);
-
-	close(fd);
-	if(testRepo.repositoryTotalSize != repoMetaData.repositoryTotalSize)
+	if (areRepoMetaDataEqual(repoMetaData, testRepo) < 0)
 	{
-		printf("total size wrong\n\n");
-	}else
-	{
-		printf("my name a borat!\n\n");
+		printf("Big Balagan!");
 	}
-
-
+	close(fd);
 
 
 	return 1;
@@ -93,9 +87,9 @@ int initRepoMetaData(RepoMetaData *repoMetaData, char** argv)
 }
 
 // assumes repoMetaData and FAT are initialized
-int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData FileAllocationTable[MAX_NUM_FILES])
+int isRepositoryTotalSizeSufficient(ssize_t repoSize)
 {
-	ssize_t catalogSize = (sizeof(repoMetaData) + sizeof(FileAllocationTable[0])*MAX_NUM_FILES);
+	ssize_t catalogSize = (sizeof(RepoMetaData) + sizeof(*MAX_NUM_FILES);
 	if(repoMetaData.repositoryTotalSize < catalogSize + MIN_BYTES_FOR_DATA)
 	{
 		return -1;
@@ -103,4 +97,28 @@ int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData File
 	{
 		return 1;
 	}
+}
+
+int createEmptyVaultFile(char* vaultName, ssize_t vaultSize)
+{
+	int vaultFileDescriptor = open(vaultName , O_RDWR | O_CREAT | O_TRUNC, 0777);
+	if ( vaultFileDescriptor < 0 )
+	{
+		printf("Error: couldn't open the vault file\n\n");
+		return -1;
+	}
+	else
+	{
+		if (lseek(vaultFileDescriptor, vaultSize, SEEK_SET) < 0 ) // TODO does write to exactly last location?
+		{
+			printf("Error: lseek failed 1 \n\n");
+			return -1;
+		}
+		if (write(vaultFileDescriptor, END_OF_FILE_CHAR , 1) < 0)
+		{
+			printf("Error: write failed 1 \n\n");
+			return -1;
+		}
+	}
+	return 1;
 }

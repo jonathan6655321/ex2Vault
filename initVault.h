@@ -6,14 +6,16 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <regex.h>
 
 #include "vaultDataStructures.h"
 #include "parseUserInput.h"
 
+#define END_OF_FILE_CHAR '\0'
+
 int initVault (int argc, char **argv);
 
 int initRepoMetaData(RepoMetaData *repoMetaData, char** argv);
-int isRepositoryTotalSizeSufficient(RepoMetaData repoMetaData, FileMetaData FileAllocationTable[MAX_NUM_FILES]);
+int isRepositoryTotalSizeSufficient(ssize_t repSize);
+int createEmptyVaultFile(char* vaultName, ssize_t vaultSize);
 
 #endif
