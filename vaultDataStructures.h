@@ -11,9 +11,12 @@
 
 #define MAX_CHARS_IN_FILE_NAME 257
 #define MAX_NUM_FILES 100
-#define START_OF_FILE_DELIMITER <<<<<<<<
-#define END_OF_FILE_DELIMITER >>>>>>>>
+#define NUM_DELIMITER_CHARS 8
+#define START_OF_FILE_DELIMITER <
+#define END_OF_FILE_DELIMITER >
+#define SIZE_OF_BOTH_DELIMITERS sizeof(char)*NUM_DELIMITER_CHARS*2
 #define MAX_BLOCKS_PER_FILE 3
+
 
 #define REPO_META_DATA_SIZE sizeof(RepoMetaData)
 #define FILE_META_DATA_SIZE sizeof(FileMetaData)

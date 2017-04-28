@@ -11,6 +11,8 @@
 
 #include "vaultIO.h"
 
+#define BUFFER_SIZE 1024*4
+
 int openVault(char *vaultName)
 {
 	return open(vaultName , O_RDWR);
@@ -19,9 +21,8 @@ int openVault(char *vaultName)
 ssize_t writeRepoMetaDataToVault(RepoMetaData *repoMetaData, int vaultFileDescriptor)
 {
 	// repo meta data starts at the beginning of the file
-	if(lseek(vaultFileDescriptor, 0, SEEK_SET) != 0)
+	if(lseekToStartOfFile(vaultFileDescriptor) < 0)
 	{
-		printf("Error: lseek failed while writing repoMetaData to vault\n\n%s\n\n", strerror(errno));
 		return -1;
 	}
 
@@ -39,11 +40,10 @@ ssize_t writeRepoMetaDataToVault(RepoMetaData *repoMetaData, int vaultFileDescri
 	return bytesWritten;
 }
 
-ssize_t getRepoMetaDataFromVault(RepoMetaData *repoMetaData, int vaultFileDescriptor)
+ssize_t readRepoMetaDataFromVault(RepoMetaData *repoMetaData, int vaultFileDescriptor)
 {
-	if(lseek(vaultFileDescriptor, 0, SEEK_SET) != 0)
+	if(lseekToStartOfFile(vaultFileDescriptor) < 0)
 	{
-		printf("Error: lseek failed\n\n");
 		return -1;
 	}
 
@@ -93,10 +93,8 @@ int areRepoMetaDataStructsEqual(RepoMetaData rep1, RepoMetaData rep2)
 	return equal;
 }
 
-ssize_t writeFileAllocationTableToVault(FileMetaData *FileAllocationTable, int vaultFileDescriptor)
+ssize_t writeFileAllocationTableToVault(FileMetaData *fileAllocationTable, int vaultFileDescriptor)
 {
-	ssize_t FileAllocationTableSize = FILE_META_DATA_SIZE*MAX_NUM_FILES;
-
 	// file meta data starts immediately after the repo meta data
 	if(lseek(vaultFileDescriptor, REPO_META_DATA_SIZE, SEEK_SET) < 0)
 	{
@@ -104,12 +102,12 @@ ssize_t writeFileAllocationTableToVault(FileMetaData *FileAllocationTable, int v
 		return -1;
 	}
 
-	ssize_t bytesWritten = write(vaultFileDescriptor, FileAllocationTable, FileAllocationTableSize);
+	ssize_t bytesWritten = write(vaultFileDescriptor, fileAllocationTable, FILE_ALLOCATION_TABLE_SIZE);
 	if(bytesWritten < 0)
 	{
 		printf("Error: write failed\n\n");
 		return -1;
-	} else if (bytesWritten != FileAllocationTableSize)
+	} else if (bytesWritten != FILE_ALLOCATION_TABLE_SIZE)
 	{
 		printf("Error: number of bytes written not equal to repo size\n\n");
 		return -1;
@@ -119,10 +117,8 @@ ssize_t writeFileAllocationTableToVault(FileMetaData *FileAllocationTable, int v
 }
 
 
-ssize_t readFileAllocationTableFromVault(FileMetaData *FileAllocationTable, int vaultFileDescriptor)
+ssize_t readFileAllocationTableFromVault(FileMetaData *fileAllocationTable, int vaultFileDescriptor)
 {
-	ssize_t FileAllocationTableSize = FILE_META_DATA_SIZE*MAX_NUM_FILES;
-
 	// file meta data starts immediately after the repo meta data
 	if(lseek(vaultFileDescriptor, REPO_META_DATA_SIZE, SEEK_SET) < 0)
 	{
@@ -130,16 +126,116 @@ ssize_t readFileAllocationTableFromVault(FileMetaData *FileAllocationTable, int 
 		return -1;
 	}
 
-	ssize_t bytesRead = read(vaultFileDescriptor, FileAllocationTable, FileAllocationTableSize);
+	ssize_t bytesRead = read(vaultFileDescriptor, fileAllocationTable, FILE_ALLOCATION_TABLE_SIZE);
 	if(bytesRead < 0)
 	{
 		printf("Error: write failed\n\n");
 		return -1;
-	} else if (bytesRead != FileAllocationTableSize)
+	} else if (bytesRead != FILE_ALLOCATION_TABLE_SIZE)
 	{
 		printf("Error: number of bytes written not equal to repo size\n\n");
 		return -1;
 	}
 
 	return bytesRead;
+}
+
+
+int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssize_t absoluteOffsetInVault)
+{
+	int totalBytesWritten = 0;
+	char *buffer = malloc(BUFFER_SIZE*sizeof(char));
+
+	if(lseekToStartOfFile(newFileDescriptor) < 0)
+	{
+		return -1;
+	}
+
+	if(lseekToOffset(vaultFileDescriptor, absoluteOffsetInVault) < 0)
+	{
+		return -1;
+	}
+
+	struct stat newFileStat;
+	if (fstat(newFileDescriptor, &newFileStat) < 0)
+	{
+		printf("Error: could not get the file stat\n\n");
+		return -1;
+	}
+	ssize_t fileSize = newFileStat.st_size;
+
+	char *startDelimiter = "<<<<<<<<";
+	write(vaultFileDescriptor, startDelimiter, 8);
+
+
+	int bytesRead;
+	int bytesWritten;
+	while(totalBytesWritten < fileSize)
+	{
+		if(fileSize - totalBytesWritten < BUFFER_SIZE)
+		{
+			bytesRead = read(newFileDescriptor, buffer, fileSize - totalBytesWritten);
+		}
+		else
+		{
+			bytesRead = read(newFileDescriptor, buffer, BUFFER_SIZE);
+		}
+		if(bytesRead < 0)
+		{
+			printf("Error: read failed\n\n");
+			return -1;
+		}
+
+		bytesWritten = write(vaultFileDescriptor, buffer, bytesRead);
+		if(bytesRead < 0)
+		{
+			printf("Error: write failed\n\n");
+			return -1;
+		}
+
+		totalBytesWritten += bytesWritten;
+	}
+
+	char *endDelimiter = ">>>>>>>>";
+	write(vaultFileDescriptor, endDelimiter, 8);
+
+	free(buffer);
+	return 1;
+}
+
+int lseekToStartOfFile(int fileDescriptor)
+{
+	if(lseek(fileDescriptor, 0 , SEEK_SET) < 0)
+	{
+		printf("Error: lseek failed\n\n");
+		return -1;
+	}
+
+	return 1;
+}
+
+int lseekToOffset(int fileDescriptor, ssize_t offset)
+{
+	if(lseek(fileDescriptor, offset , SEEK_SET) < 0)
+	{
+		printf("Error: lseek failed\n\n");
+		return -1;
+	}
+
+	return 1;
+}
+
+void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInVault)
+{
+	int i;
+	for(i=0; i < numFilesInVault; i = i+1)
+	{
+		printf("File Name: %s\n", (char*)((FileAllocationTable + i)->fileName));
+	}
+}
+
+void printRepoMetaData(RepoMetaData repoMetaData)
+{
+	printf("num files in vault: %d\n", repoMetaData.numFilesInVault);
+	printf("size of all files in repo: %zd\n", repoMetaData.sizeOfAllFilesInRepo);
 }
