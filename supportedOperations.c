@@ -42,29 +42,29 @@ int runOperation(OperationType op, int argc, char** argv)
 {
 	if(op == INIT_VAULT)
 	{
-		initVault(argc, argv);
+		return initVault(argc, argv);
 	}else if(op == LIST_FILES)
 	{
-		listFiles();
+		return listFiles();
 	}else if(op == ADD_FILE)
 	{
-		addFile();
+		return addFile(argc, argv);
 	}else if(op == REMOVE_FILE)
 	{
-		removeFile();
+		return removeFile();
 	}else if(op == FETCH_FILE)
 	{
-		fetchFile();
+		return fetchFile();
 	}else if(op == DEFRAG_VAULT)
 	{
-		defragVault();
+		return defragVault();
 	}else if(op == GET_VAULT_STATUS)
 	{
-		getVaultStatus();
+		return getVaultStatus();
 	}else if(op == INVALID_OPERATION)
 	{
 		return -1;
 	}
 
-	return 1;
+	return -1;
 }

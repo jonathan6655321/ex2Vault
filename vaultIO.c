@@ -11,6 +11,11 @@
 
 #include "vaultIO.h"
 
+int openVault(char *vaultName)
+{
+	return open(vaultName , O_RDWR);
+}
+
 ssize_t writeRepoMetaDataToVault(RepoMetaData *repoMetaData, int vaultFileDescriptor)
 {
 	// repo meta data starts at the beginning of the file
@@ -92,7 +97,7 @@ ssize_t writeFileAllocationTableToVault(FileMetaData *FileAllocationTable, int v
 {
 	ssize_t FileAllocationTableSize = FILE_META_DATA_SIZE*MAX_NUM_FILES;
 
-	// file meta data starts after the repo meta data
+	// file meta data starts immediately after the repo meta data
 	if(lseek(vaultFileDescriptor, REPO_META_DATA_SIZE, SEEK_SET) < 0)
 	{
 		printf("Error: lseek failed\n\n");
@@ -118,7 +123,7 @@ ssize_t readFileAllocationTableFromVault(FileMetaData *FileAllocationTable, int 
 {
 	ssize_t FileAllocationTableSize = FILE_META_DATA_SIZE*MAX_NUM_FILES;
 
-	// file meta data starts after the repo meta data
+	// file meta data starts immediately after the repo meta data
 	if(lseek(vaultFileDescriptor, REPO_META_DATA_SIZE, SEEK_SET) < 0)
 	{
 		printf("Error: lseek failed\n\n");

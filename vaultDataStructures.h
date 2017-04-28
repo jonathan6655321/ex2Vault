@@ -9,7 +9,7 @@
 #include <time.h>
 
 
-#define MAX_CHARS_IN_FILE_NAME 256
+#define MAX_CHARS_IN_FILE_NAME 257
 #define MAX_NUM_FILES 100
 #define START_OF_FILE_DELIMITER <<<<<<<<
 #define END_OF_FILE_DELIMITER >>>>>>>>
@@ -18,6 +18,8 @@
 #define REPO_META_DATA_SIZE sizeof(RepoMetaData)
 #define FILE_META_DATA_SIZE sizeof(FileMetaData)
 #define FILE_ALLOCATION_TABLE_SIZE sizeof(FileMetaData)*MAX_NUM_FILES
+#define FILE_PATH_DELIMITER '/'
+// TODO FILE_PATH_DELIMITER PER OS???
 
 typedef struct RepoMetaData 
 {
@@ -36,6 +38,7 @@ typedef struct DataBlock
 
 typedef struct FileMetaData // AKA FileAllocationTableEntry
 {
+	int isValidFile;
 	char fileName[MAX_CHARS_IN_FILE_NAME];
 	ssize_t fileSize;
 //	st_mode fileProtection;

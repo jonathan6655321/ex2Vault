@@ -49,17 +49,29 @@ else
 	echo FAIL!!! initVault.c repository-total-size request not large enough
 fi
 
+./vault my_repository.vlt init 2G
+
+FILESIZE=$(stat -c%s "my_repository.vlt")
+if [ "$FILESIZE" == "2147483649" ]; then
+	echo OK: initVault.c file size fits request
+else
+	echo FAIL!!! initVault.c file size doesnt fit request
+fi
+
+
+echo ======= tests for addFile.c ======
+
+
+./vault my_repository.vlt init 2M
+res=$(./vault my_repository.vlt add folder1/folder2/a2MegaFile)
+if [ "$res" == "Error: not enough space for file in vault" ]; then
+	echo OK: addFile.c  not enough space for file in vault
+else
+	echo FAIL!!! addFile.c not enough space for file in vault
+fi
+
+
+
 echo ========================================
 echo ============ TESTS DONE: ===============
 echo ========================================
-
-#declare -a arr=("init" "list" "add" "rm" "fetch" "defrag" "status" "gibrish")
-
-#for i in "${arr[@]}"  
-#do
-#./vault my_repository.vlt "$i"
-#done
-
-# testing initVault:
-#./vault 
-

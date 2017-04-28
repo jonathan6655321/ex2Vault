@@ -12,13 +12,16 @@
 
 #include "vaultDataStructures.h"
 
+
+int openVault(char *vaultName);
+
 ssize_t writeRepoMetaDataToVault(RepoMetaData *repoMetaData, int vaultFileDescriptor);
 ssize_t getRepoMetaDataFromVault(RepoMetaData *repoMetaData, int vaultFileDescriptor);
 
 ssize_t writeFileAllocationTableToVault(FileMetaData *FileAllocationTable, int vaultFileDescriptor);
 ssize_t readFileAllocationTableFromVault(FileMetaData *FileAllocationTable, int vaultFileDescriptor);
 
-int areRepoMetaDataEqual(RepoMetaData rep1, RepoMetaData rep2);
+int areRepoMetaDataStructsEqual(RepoMetaData rep1, RepoMetaData rep2);
 
 
 
