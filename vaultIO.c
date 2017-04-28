@@ -230,7 +230,10 @@ void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInV
 	int i;
 	for(i=0; i < numFilesInVault; i = i+1)
 	{
-		printf("File Name: %s\n", (char*)((FileAllocationTable + i)->fileName));
+		printf("%-20s", (char*)((FileAllocationTable + i)->fileName)); // TODO alignment cool?
+		printf("%-20zd", ((FileAllocationTable + i)->fileSize)); // TODO format!
+		printf("%-10o", (((FileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
+		printf("%-20s\n", asctime(localtime(&((FileAllocationTable + i)->insertionDateStamp))));
 	}
 }
 

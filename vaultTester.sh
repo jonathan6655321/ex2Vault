@@ -93,6 +93,21 @@ else
 fi
 
 
+
+echo ======= tests for listFiles.c ======
+
+
+./vault my_repository.vlt list
+
+
+
+
+
+
+
+
+
+
 echo ========================================
 echo ============ TESTS DONE: ===============
 echo ========================================

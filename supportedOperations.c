@@ -45,7 +45,7 @@ int runOperation(OperationType op, int argc, char** argv)
 		return initVault(argc, argv);
 	}else if(op == LIST_FILES)
 	{
-		return listFiles();
+		return listFiles(argc, argv);
 	}else if(op == ADD_FILE)
 	{
 		return addFile(argc, argv);

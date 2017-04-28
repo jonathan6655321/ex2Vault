@@ -44,7 +44,7 @@ typedef struct FileMetaData // AKA FileAllocationTableEntry
 	int isValidFile;
 	char fileName[MAX_CHARS_IN_FILE_NAME];
 	ssize_t fileSize;
-//	st_mode fileProtection;
+	mode_t fileProtection;
 	time_t insertionDateStamp;
 	DataBlock fileDataBlocks[MAX_BLOCKS_PER_FILE];
 }FileMetaData;

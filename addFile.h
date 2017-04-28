@@ -30,7 +30,7 @@ int naiveWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor ,
 		RepoMetaData repoMetaData);
 int updateRepoMetaDataAfterAddFile(RepoMetaData *repoMetaData, ssize_t addedFileSize);
 int createAddedFileMetaData(char addedFileName[MAX_CHARS_IN_FILE_NAME], ssize_t addedFileSize,
-		time_t insertionTime, DataBlock addedFileDataBlocks[MAX_BLOCKS_PER_FILE], FileMetaData *newFileMetaData);
+		time_t insertionTime, mode_t filePermissions, DataBlock addedFileDataBlocks[MAX_BLOCKS_PER_FILE], FileMetaData *newFileMetaData);
 
 
 #endif

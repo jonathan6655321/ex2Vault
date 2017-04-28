@@ -7,7 +7,12 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "initVault.h"
+#include "vaultIO.h"
+#include "vaultDataStructures.h"
 
-int listFiles ();
+#define LIST_FILES_NUM_ARGUMENTS 3
+
+int listFiles (int argc, char** argv);
 
 #endif
