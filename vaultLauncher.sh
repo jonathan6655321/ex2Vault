@@ -5,8 +5,8 @@ gcc -o vault *c
 for i in `seq 1 100`;
 do
 
-	rm data_filter"$i".c
-#	cp folder1/folder2/data_filter.c data_filter"$i".c
+#	rm data_filter"$i".c
+	cp folder1/folder2/data_filter.c folder1/folder2/data_filter"$i".c
 done  
 
 ./vault my_repository.vlt init 10M 

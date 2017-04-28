@@ -72,6 +72,27 @@ fi
 
 
 
+
+./vault my_repository.vlt init 510K
+var=0
+for i in `seq 1 100`
+do
+	
+	res=$(./vault my_repository.vlt add folder1/folder2/data_filter"$i".c)
+	if [ "$res" != "Result: data_filter$i.c inserted" ]; then
+		echo FAIL!!! on addFile.c , file $i
+		var=1		 
+	fi
+	
+done
+
+if [ "$var" == "1" ]; then
+	echo FAILED add.c TEST
+else
+	echo OK: addFile.c passed for 100 file insert
+fi
+
+
 echo ========================================
 echo ============ TESTS DONE: ===============
 echo ========================================
