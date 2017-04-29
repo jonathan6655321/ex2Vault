@@ -64,6 +64,8 @@ int removeFile (int argc, char** argv)
 		return -1;
 	}
 
+
+	printf("Result: %s deleted\n\n", fileName);
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
 	return 1;
@@ -134,34 +136,34 @@ int writeZerosOverDelimiter(ssize_t offset, int vaultFileDescriptor)
 	return 1;
 }
 
-int updateFileAllocationTableAfterRemoveFile(FileMetaData *fileAllocationTable, char *fileName, short numFilesInVault)
+int updateFileAllocationTableAfterRemoveFile(FileMetaData *fileAllocationTable, char *fileName, short numFilesInVaultAfterDelete)
 {
 	int i;
-	for (i=0; i < numFilesInVault; i++)
+	for (i=0; i < numFilesInVaultAfterDelete; i++)
 	{
 		if (strcmp(((fileAllocationTable + i)->fileName), fileName) == 0)
 		{
-			if(i != numFilesInVault -1)
+			if(i != numFilesInVaultAfterDelete)
 			{
-				copyLastFileMetaDataOverFileMetaDataAtI(i,fileAllocationTable, numFilesInVault);
+				copyLastFileMetaDataOverFileMetaDataAtI(i,fileAllocationTable, numFilesInVaultAfterDelete);
 			}
-			fileAllocationTable[numFilesInVault].isValidFile = 0;
+			fileAllocationTable[numFilesInVaultAfterDelete].isValidFile = 0;
 			return 1;
 		}
 	}
 	return -1;
 }
 
-void copyLastFileMetaDataOverFileMetaDataAtI(int i, FileMetaData *fileAllocationTable, short numFilesInVault)
+void copyLastFileMetaDataOverFileMetaDataAtI(int i, FileMetaData *fileAllocationTable, short numFilesInVaultAfterDelete)
 {
-	memcpy(fileAllocationTable + i , fileAllocationTable + numFilesInVault -1, FILE_META_DATA_SIZE);
+	memcpy(fileAllocationTable + i , fileAllocationTable + numFilesInVaultAfterDelete, FILE_META_DATA_SIZE);
 }
 
 int updateRepoMetaDataAfterRemoveFile(RepoMetaData *repoMetaData, ssize_t sizeOfRemovedFile)
 {
 	(*repoMetaData).numFilesInVault--;
 	(*repoMetaData).lastModificationTimeStamp = time(NULL);
-	(*repoMetaData).sizeOfAllFilesInRepo -= sizeOfRemovedFile;
+	(*repoMetaData).sizeOfAllFilesInRepo -= (sizeOfRemovedFile + NUM_DELIMITER_CHARS*2*sizeof(char));
 	return 1;
 }
 

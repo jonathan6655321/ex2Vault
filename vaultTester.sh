@@ -104,14 +104,28 @@ echo ======= tests for listFiles.c ======
 echo ======= tests for removeFile.c ======
 
 
-./vault my_repository.vlt rm data_filter10.c
+var=0
+for i in `seq 1 10`
+do
+	
+#./vault my_repository.vlt list
+	res=$(./vault my_repository.vlt rm data_filter"$i".c)
+	if [ "$res" != "Result: data_filter"$i".c deleted" ]; then
+		echo $res
+		echo FAIL!!! on removeFile.c , file $i
+		var=1		 
+	fi
+	
+done
 
 ./vault my_repository.vlt list
 
 
-./vault my_repository.vlt rm data_filter10.c
-
-
+if [ "$var" == "1" ]; then
+	echo FAILED removeFile.c TEST
+else
+	echo OK: passed removeFile.c Test
+fi
 
 echo ========================================
 echo ============ TESTS DONE: ===============
