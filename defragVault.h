@@ -14,5 +14,7 @@
 #define DEFRAG_VAULT_NUM_ARGUMENTS 3
 
 int defragVault (int argc, char** argv);
+int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccumulatedGap, ssize_t blockNumBytes
+				, int vaultFileDescriptor);
 
 #endif

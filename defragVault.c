@@ -61,30 +61,13 @@ int defragVault(int argc, char** argv)
 
 	sortDataBlocksByOffset(allBlocks, numBlocks);
 
-	ssize_t totalAccumulatedGap = allBlocks[0].blockAbsoluteOffset - (FILE_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
-	int i;
-	ssize_t nextGap;
-
-	for (i=0; i < numBlocks; i++)
+	if (defrag(vaultFileDescriptor, allBlocks, numBlocks) < 0)
 	{
-		if (i != numBlocks -1)
-		{
-			nextGap = allBlocks[i+1].blockAbsoluteOffset - (allBlocks[i].blockAbsoluteOffset + allBlocks[i].blockNumBytes);
-		}
-		else
-		{
-			nextGap = 0;
-		}
-
-		if (writeBlockToOffsetMinusShift(allBlocks[i].blockAbsoluteOffset, totalAccumulatedGap, allBlocks[i].blockNumBytes
-				, vaultFileDescriptor) < 0)
-		{
-			return -1;
-		}
-
-		totalAccumulatedGap += nextGap;
+		printf("Error: defrag failed\n\n");
+		return -1;
 	}
 
+	printf("Result: Defragmentation complete\n\n");
 	free(allBlocks);
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
@@ -103,16 +86,24 @@ int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccum
 	}
 
 	int bytesRead;
-	int bytesWritten;
+	int bytesWritten = 0;
 	while(totalBytesWritten < blockNumBytes)
 	{
+
+		// set to read from original location
+		if(lseek(vaultFileDescriptor, blockAbsoluteOffset + totalBytesWritten, SEEK_SET) < 0)
+		{
+			printf("Error: failed lseek!\n\n");
+			return -1;
+		}
+
 		if(blockNumBytes - totalBytesWritten < BUFFER_SIZE)
 		{
-			bytesRead = read(fromFileDescriptor, buffer, blockNumBytes - totalBytesWritten);
+			bytesRead = read(vaultFileDescriptor, buffer, blockNumBytes - totalBytesWritten);
 		}
 		else
 		{
-			bytesRead = read(fromFileDescriptor, buffer, BUFFER_SIZE);
+			bytesRead = read(vaultFileDescriptor, buffer, BUFFER_SIZE);
 		}
 		if(bytesRead < 0)
 		{
@@ -120,7 +111,14 @@ int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccum
 			return -1;
 		}
 
-		bytesWritten = write(toFileDescriptor, buffer, bytesRead);
+		// set to write at original locatio minus shift
+		if(lseek(vaultFileDescriptor, blockAbsoluteOffset + totalBytesWritten - totalAccumulatedGap, SEEK_SET) < 0)
+		{
+			printf("Error: failed lseek!\n\n");
+			return -1;
+		}
+
+		bytesWritten = write(vaultFileDescriptor, buffer, bytesRead);
 		if(bytesRead < 0)
 		{
 			printf("Error: write failed\n\n");
@@ -144,3 +142,33 @@ int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccum
 	return 1;
 }
 
+int defrag(int vaultFileDescriptor, DataBlock  *allBlocks, int numBlocks)
+{
+	ssize_t totalAccumulatedGap = allBlocks[0].blockAbsoluteOffset - (FILE_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
+	int i;
+	ssize_t nextGap;
+
+	for (i=0; i < numBlocks; i++)
+	{
+		if (i != numBlocks -1)
+		{
+			nextGap = allBlocks[i+1].blockAbsoluteOffset - (allBlocks[i].blockAbsoluteOffset + allBlocks[i].blockNumBytes);
+		}
+		else
+		{
+			nextGap = 0;
+		}
+
+		if (writeBlockToOffsetMinusShift(allBlocks[i].blockAbsoluteOffset, totalAccumulatedGap, allBlocks[i].blockNumBytes
+				, vaultFileDescriptor) < 0)
+		{
+			return -1;
+		}
+
+		allBlocks[i].blockAbsoluteOffset -= totalAccumulatedGap;
+
+		totalAccumulatedGap += nextGap;
+	}
+
+	return 1;
+}
