@@ -11,8 +11,6 @@
 
 #include "vaultIO.h"
 
-#define BUFFER_SIZE 1024*4
-
 int openVault(char *vaultName)
 {
 	return open(vaultName , O_RDWR);

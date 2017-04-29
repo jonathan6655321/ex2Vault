@@ -11,6 +11,8 @@
 #include "vaultIO.h"
 #include "vaultDataStructures.h"
 
-int defragVault ();
+#define DEFRAG_VAULT_NUM_ARGUMENTS 3
+
+int defragVault (int argc, char** argv);
 
 #endif

@@ -16,7 +16,7 @@
 
 // $./vault my_repository.vlt fetch some_file_name
 int fetchFile(int argc, char** argv);
-
 int writeFileDataToFile(int fileDescriptor, int vaultFileDescriptor,char *fileName, FileMetaData *fileAllocationTable,
 		int numFilesInVault);
+
 #endif

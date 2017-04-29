@@ -57,7 +57,7 @@ int runOperation(OperationType op, int argc, char** argv)
 		return fetchFile(argc, argv);
 	}else if(op == DEFRAG_VAULT)
 	{
-		return defragVault();
+		return defragVault(argc, argv);
 	}else if(op == GET_VAULT_STATUS)
 	{
 		return getVaultStatus(argc, argv);

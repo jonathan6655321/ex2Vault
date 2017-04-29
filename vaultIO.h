@@ -13,6 +13,7 @@
 #include "vaultDataStructures.h"
 #include "parseUserInput.h"
 
+#define BUFFER_SIZE 1024*4
 
 int openVault(char *vaultName);
 
@@ -32,5 +33,6 @@ void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInV
 
 int writeStartDelimiter(int vaultFileDescriptor);
 int writeEndDelimiter(int vaultFileDescriptor);
+
 
 #endif
