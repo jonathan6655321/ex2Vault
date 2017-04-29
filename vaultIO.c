@@ -164,8 +164,11 @@ int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssi
 	}
 	ssize_t fileSize = newFileStat.st_size;
 
-	char *startDelimiter = "<<<<<<<<";
-	write(vaultFileDescriptor, startDelimiter, 8);
+	if (writeStartDelimiter(vaultFileDescriptor)  != NUM_DELIMITER_CHARS)
+	{
+		printf("Error: failed to write to vault\n");
+		return -1;
+	}
 
 
 	int bytesRead;
@@ -196,8 +199,11 @@ int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssi
 		totalBytesWritten += bytesWritten;
 	}
 
-	char *endDelimiter = ">>>>>>>>";
-	write(vaultFileDescriptor, endDelimiter, 8);
+	if (writeEndDelimiter(vaultFileDescriptor)  != NUM_DELIMITER_CHARS)
+	{
+		printf("Error: failed to write to vault\n");
+		return -1;
+	}
 
 	free(buffer);
 	return 1;
@@ -231,9 +237,22 @@ void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInV
 	for(i=0; i < numFilesInVault; i = i+1)
 	{
 		printf("%-20s", (char*)((FileAllocationTable + i)->fileName)); // TODO alignment cool?
-		printf("%-20zd", ((FileAllocationTable + i)->fileSize)); // TODO format!
+		ssize_t numBytes = (FileAllocationTable + i)->fileSize;
+		int j=0;
+		while (numBytes / KILO > 0)
+		{
+			numBytes /= KILO;
+			j++;
+		}
+		char *sizeUnits = "BKMG";
+		if(j < 0 || j > 3)
+		{
+			printf("Error: call me at 0523447550, this error should not have occured!");
+			return ;
+		}
+		printf("%zd%-10c",numBytes,(char)sizeUnits[j]); //TODO notice this rounds out the data...
 		printf("%-10o", (((FileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
-		printf("%-20s\n", asctime(localtime(&((FileAllocationTable + i)->insertionDateStamp))));
+		printf("%-20s", asctime(localtime(&((FileAllocationTable + i)->insertionDateStamp))));
 	}
 }
 
@@ -241,4 +260,16 @@ void printRepoMetaData(RepoMetaData repoMetaData)
 {
 	printf("num files in vault: %d\n", repoMetaData.numFilesInVault);
 	printf("size of all files in repo: %zd\n", repoMetaData.sizeOfAllFilesInRepo);
+}
+
+int writeStartDelimiter(int vaultFileDescriptor)
+{
+	char *startDelimiter = START_OF_FILE_DELIMITER;
+	return write(vaultFileDescriptor, startDelimiter, 8);
+}
+
+int writeEndDelimiter(int vaultFileDescriptor)
+{
+	char *endDelimiter = END_OF_FILE_DELIMITER;
+	return write(vaultFileDescriptor, endDelimiter, 8);
 }

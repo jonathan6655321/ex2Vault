@@ -51,7 +51,7 @@ int addFile (int argc, char** argv)
 	FileMetaData *fileAllocationTable = malloc(FILE_ALLOCATION_TABLE_SIZE);
 	if(fileAllocationTable == NULL)
 		{
-			printf("Failed Malloc");
+			printf("Failed Malloc\n");
 			return -1;
 		}
 	readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor);
@@ -103,7 +103,7 @@ int addFile (int argc, char** argv)
 
 	FileMetaData addedFileMetaData;
 	createAddedFileMetaData (addedFileName, addedFileSize,
-			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, addedFileDataBlocks, &addedFileMetaData);
+			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, 1, addedFileDataBlocks, &addedFileMetaData);
 	memcpy(fileAllocationTable + (repoMetaData.numFilesInVault -1) , &addedFileMetaData, FILE_META_DATA_SIZE);
 //	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault);
 	writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor);
@@ -171,15 +171,16 @@ int updateRepoMetaDataAfterAddFile(RepoMetaData *repoMetaData, ssize_t addedFile
 }
 
 int createAddedFileMetaData(char addedFileName[MAX_CHARS_IN_FILE_NAME], ssize_t addedFileSize,
-		time_t insertionTime, mode_t filePermissions,DataBlock addedFileDataBlocks[MAX_BLOCKS_PER_FILE], FileMetaData *newFileMetaData)
+		time_t insertionTime, mode_t filePermissions, short numBlocksDividedInto ,DataBlock addedFileDataBlocks[MAX_BLOCKS_PER_FILE], FileMetaData *newFileMetaData)
 {
 	strcpy((*newFileMetaData).fileName, addedFileName);
 	(*newFileMetaData).fileSize = addedFileSize;
 	(*newFileMetaData).insertionDateStamp = insertionTime;
 	(*newFileMetaData).fileProtection = filePermissions;
 	(*newFileMetaData).isValidFile = 1;
+	(*newFileMetaData).numBlocksDividedInto = numBlocksDividedInto;
 	int i;
-	for(i=0; i < MAX_BLOCKS_PER_FILE; i++)
+	for(i=0; i < numBlocksDividedInto; i++)
 	{
 		(*newFileMetaData).fileDataBlocks[i].blockAbsoluteOffset = addedFileDataBlocks->blockAbsoluteOffset;
 		(*newFileMetaData).fileDataBlocks[i].blockNumBytes = addedFileDataBlocks->blockNumBytes;

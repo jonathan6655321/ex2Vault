@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "vaultDataStructures.h"
+#include "parseUserInput.h"
 
 
 int openVault(char *vaultName);
@@ -29,5 +30,7 @@ int areRepoMetaDataStructsEqual(RepoMetaData rep1, RepoMetaData rep2);
 void printRepoMetaData(RepoMetaData repoMetaData);
 void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInVault);
 
+int writeStartDelimiter(int vaultFileDescriptor);
+int writeEndDelimiter(int vaultFileDescriptor);
 
 #endif

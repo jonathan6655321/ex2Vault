@@ -75,7 +75,7 @@ fi
 
 ./vault my_repository.vlt init 510K
 var=0
-for i in `seq 1 100`
+for i in `seq 1 10`
 do
 	
 	res=$(./vault my_repository.vlt add folder1/folder2/data_filter"$i".c)

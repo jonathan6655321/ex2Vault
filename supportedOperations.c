@@ -51,7 +51,7 @@ int runOperation(OperationType op, int argc, char** argv)
 		return addFile(argc, argv);
 	}else if(op == REMOVE_FILE)
 	{
-		return removeFile();
+		return removeFile(argc, argv);
 	}else if(op == FETCH_FILE)
 	{
 		return fetchFile();

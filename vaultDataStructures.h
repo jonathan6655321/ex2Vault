@@ -12,8 +12,8 @@
 #define MAX_CHARS_IN_FILE_NAME 257
 #define MAX_NUM_FILES 100
 #define NUM_DELIMITER_CHARS 8
-#define START_OF_FILE_DELIMITER <
-#define END_OF_FILE_DELIMITER >
+#define START_OF_FILE_DELIMITER "<<<<<<<<"
+#define END_OF_FILE_DELIMITER ">>>>>>>>"
 #define SIZE_OF_BOTH_DELIMITERS sizeof(char)*NUM_DELIMITER_CHARS*2
 #define MAX_BLOCKS_PER_FILE 3
 
@@ -33,6 +33,7 @@ typedef struct RepoMetaData
 	short numFilesInVault;
 }RepoMetaData;
 
+// holds file data AND the delimiters
 typedef struct DataBlock
 {
 	off_t blockAbsoluteOffset;
@@ -46,6 +47,7 @@ typedef struct FileMetaData // AKA FileAllocationTableEntry
 	ssize_t fileSize;
 	mode_t fileProtection;
 	time_t insertionDateStamp;
+	short numBlocksDividedInto;
 	DataBlock fileDataBlocks[MAX_BLOCKS_PER_FILE];
 }FileMetaData;
 
