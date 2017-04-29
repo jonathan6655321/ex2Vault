@@ -51,6 +51,7 @@ int getVaultStatus (int argc, char** argv)
 
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
+	return 1;
 }
 
 double getFragmentationRatio(FileMetaData *fileAllocationTable, int numFilesInVault, ssize_t sizeOfAllFilesInRepo)

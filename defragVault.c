@@ -46,29 +46,37 @@ int defragVault(int argc, char** argv)
 	int numFilesInVault = repoMetaData.numFilesInVault;
 	int numBlocks = getNumBlocksInVault(fileAllocationTable, numFilesInVault);
 
-	DataBlock *allBlocks = malloc(numBlocks*sizeof(DataBlock));
-	if (allBlocks == NULL)
+	DataBlock **allBlocksPointers = malloc(numBlocks*sizeof(DataBlock*));
+	if (allBlocksPointers == NULL)
 	{
 		printf("Error: malloc failed\n\n");
 		return -1;
 	}
 
-	if(loadAllBlocks(allBlocks, fileAllocationTable, numFilesInVault) != numBlocks)
+	if(loadAllBlocksPointers(allBlocksPointers, fileAllocationTable, numFilesInVault) != numBlocks)
 	{
 		printf("Error: this should not have happened...\n\n");
 		return -1;
 	}
 
-	sortDataBlocksByOffset(allBlocks, numBlocks);
+	sortDataBlocksPointersByOffset(allBlocksPointers, numBlocks);
 
-	if (defrag(vaultFileDescriptor, allBlocks, numBlocks) < 0)
+	if (defrag(vaultFileDescriptor, allBlocksPointers, numBlocks) < 0)
 	{
 		printf("Error: defrag failed\n\n");
 		return -1;
 	}
 
+	// TODO zero out the delimiters left behind? ??
+
+	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
+	{
+		printf("Error: failed writing FAT to file\n");
+		return -1;
+	}
+
 	printf("Result: Defragmentation complete\n\n");
-	free(allBlocks);
+	free(allBlocksPointers);
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
 }
@@ -142,9 +150,9 @@ int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccum
 	return 1;
 }
 
-int defrag(int vaultFileDescriptor, DataBlock  *allBlocks, int numBlocks)
+int defrag(int vaultFileDescriptor, DataBlock  **allBlocksPointers, int numBlocks)
 {
-	ssize_t totalAccumulatedGap = allBlocks[0].blockAbsoluteOffset - (FILE_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
+	ssize_t totalAccumulatedGap = (*allBlocksPointers[0]).blockAbsoluteOffset - (FILE_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
 	int i;
 	ssize_t nextGap;
 
@@ -152,23 +160,66 @@ int defrag(int vaultFileDescriptor, DataBlock  *allBlocks, int numBlocks)
 	{
 		if (i != numBlocks -1)
 		{
-			nextGap = allBlocks[i+1].blockAbsoluteOffset - (allBlocks[i].blockAbsoluteOffset + allBlocks[i].blockNumBytes);
+			nextGap = (*allBlocksPointers[i+1]).blockAbsoluteOffset
+					- ((*allBlocksPointers[i]).blockAbsoluteOffset + (*allBlocksPointers[i]).blockNumBytes);
 		}
 		else
 		{
 			nextGap = 0;
 		}
 
-		if (writeBlockToOffsetMinusShift(allBlocks[i].blockAbsoluteOffset, totalAccumulatedGap, allBlocks[i].blockNumBytes
+		if (writeBlockToOffsetMinusShift((*allBlocksPointers[i]).blockAbsoluteOffset, totalAccumulatedGap,
+				(*allBlocksPointers[i]).blockNumBytes
 				, vaultFileDescriptor) < 0)
 		{
 			return -1;
 		}
 
-		allBlocks[i].blockAbsoluteOffset -= totalAccumulatedGap;
+		(*allBlocksPointers[i]).blockAbsoluteOffset -= totalAccumulatedGap;
 
 		totalAccumulatedGap += nextGap;
 	}
 
 	return 1;
+}
+
+int loadAllBlocksPointers(DataBlock **allBlocksPointers, FileMetaData *fileAllocationTable, int numFilesInVault)
+{
+	int currentBlockIndex = 0;
+	int numFile;
+	for (numFile = 0; numFile < numFilesInVault; numFile++)
+	{
+		int blockInFile;
+		for(blockInFile=0; blockInFile < fileAllocationTable[numFile].numValidBlocks; blockInFile ++)
+		{
+			allBlocksPointers[currentBlockIndex] = &(fileAllocationTable[numFile].fileDataBlocks[blockInFile]);
+			currentBlockIndex++;
+		}
+	}
+
+	return currentBlockIndex;
+}
+
+void sortDataBlocksPointersByOffset(DataBlock **allBlocksPointers, int numBlocks)
+{
+	if (numBlocks <= 1)
+	{
+		return;
+	}
+
+
+	DataBlock *tempBlockPointer;
+	int i;
+	int j;
+	for (i=1; i < numBlocks; i++)
+	{
+		j = i;
+		while ( j >= 1 && (*allBlocksPointers[j]).blockAbsoluteOffset < (*allBlocksPointers[j-1]).blockAbsoluteOffset)
+		{
+			tempBlockPointer = allBlocksPointers[j-1];
+			allBlocksPointers[j-1] = allBlocksPointers[j];
+			allBlocksPointers[j] = tempBlockPointer;
+			j--;
+		}
+	}
 }

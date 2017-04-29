@@ -16,5 +16,7 @@
 int defragVault (int argc, char** argv);
 int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccumulatedGap, ssize_t blockNumBytes
 				, int vaultFileDescriptor);
+int loadAllBlocksPointers(DataBlock **allBlocksPointers, FileMetaData *fileAllocationTable, int numFilesInVault);
+void sortDataBlocksPointersByOffset(DataBlock **allBlocksPointers, int numBlocks);
 
 #endif
