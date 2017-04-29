@@ -15,5 +15,13 @@
 
  //$./vault my_repository.vlt rm file_name
 int removeFile (int argc, char** argv);
+int deleteRemovedFileDelimitersFromVault(char *fileName, FileMetaData *fileAllocationTable, short numFilesInVault,
+		int vaultFileDescriptor);
+int writeZerosOverDelimiter(ssize_t offset, int vaultFileDescriptor);
+
+int updateFileAllocationTableAfterRemoveFile(FileMetaData *fileAllocationTable, char *fileName, short numFilesInVault);
+void copyLastFileMetaDataOverFileMetaDataAtI(int i, FileMetaData *fileAllocationTable, short numFilesInVault);
+
+ssize_t getFileSize(FileMetaData *fileAllocationTable, char *fileName, int numFilesInVault);
 
 #endif

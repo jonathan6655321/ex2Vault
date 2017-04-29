@@ -42,12 +42,12 @@ typedef struct DataBlock
 
 typedef struct FileMetaData // AKA FileAllocationTableEntry
 {
-	int isValidFile;
+	int isValidFile; // 0 invalid, 1 valid
 	char fileName[MAX_CHARS_IN_FILE_NAME];
 	ssize_t fileSize;
 	mode_t fileProtection;
 	time_t insertionDateStamp;
-	short numBlocksDividedInto;
+	short numValidBlocks;
 	DataBlock fileDataBlocks[MAX_BLOCKS_PER_FILE];
 }FileMetaData;
 

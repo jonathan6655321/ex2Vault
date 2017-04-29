@@ -101,10 +101,15 @@ echo ======= tests for listFiles.c ======
 
 
 
+echo ======= tests for removeFile.c ======
 
 
+./vault my_repository.vlt rm data_filter10.c
+
+./vault my_repository.vlt list
 
 
+./vault my_repository.vlt rm data_filter10.c
 
 
 

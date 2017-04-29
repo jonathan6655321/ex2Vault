@@ -106,8 +106,18 @@ int addFile (int argc, char** argv)
 			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, 1, addedFileDataBlocks, &addedFileMetaData);
 	memcpy(fileAllocationTable + (repoMetaData.numFilesInVault -1) , &addedFileMetaData, FILE_META_DATA_SIZE);
 //	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault);
-	writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor);
-	writeRepoMetaDataToVault(&repoMetaData, vaultFileDescriptor);
+
+	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
+	{
+		printf("Error: failed writing FAT to fiel\n");
+		return -1;
+	}
+
+	if (writeRepoMetaDataToVault(&repoMetaData, vaultFileDescriptor) < 0)
+	{
+		printf("Error: failed writing FAT to fiel\n");
+		return -1;
+	}
 
 	close(newFileDescriptor);
 	close(vaultFileDescriptor);
@@ -178,7 +188,7 @@ int createAddedFileMetaData(char addedFileName[MAX_CHARS_IN_FILE_NAME], ssize_t 
 	(*newFileMetaData).insertionDateStamp = insertionTime;
 	(*newFileMetaData).fileProtection = filePermissions;
 	(*newFileMetaData).isValidFile = 1;
-	(*newFileMetaData).numBlocksDividedInto = numBlocksDividedInto;
+	(*newFileMetaData).numValidBlocks = numBlocksDividedInto;
 	int i;
 	for(i=0; i < numBlocksDividedInto; i++)
 	{
