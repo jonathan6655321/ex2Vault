@@ -173,6 +173,16 @@ fi
 
 ./vault my_repository.vlt status
 
+
+
+
+echo ======= tests for defragVault.c ======
+
+./vault my_repository.vlt defrag
+
+./vault my_repository.vlt status
+
+
 echo ========================================
 echo ============ TESTS DONE: ===============
 echo ========================================
