@@ -32,9 +32,15 @@ int removeFile (int argc, char** argv)
 			printf("Failed Malloc\n");
 			return -1;
 		}
-	readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor);
-	readFileAllocationTableFromVault(fileAllocationTable, vaultFileDescriptor);
+	if (readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor) < 0)
+	{
+		return -1;
+	}
 
+	if (readFileAllocationTableFromVault(fileAllocationTable, vaultFileDescriptor) < 0)
+	{
+		return -1;
+	}
 
 	if (isUniqeFileName(fileName, fileAllocationTable, repoMetaData.numFilesInVault) > 0)
 	{

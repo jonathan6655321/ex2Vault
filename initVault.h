@@ -19,5 +19,6 @@ int initRepoMetaData(RepoMetaData *repoMetaData, char** argv);
 int isRepositoryTotalSizeSufficient(ssize_t repSize);
 int createEmptyVaultFile(char* vaultName, ssize_t vaultSize);
 int initFileAllocationTable(FileMetaData fileAllocationTable[MAX_NUM_FILES]);
+int bufferedWriteFromFileToFile(int fromFileDescriptor, int toFileDescriptor, ssize_t numBytesToWrite);
 
 #endif

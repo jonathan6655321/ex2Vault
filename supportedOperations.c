@@ -54,13 +54,13 @@ int runOperation(OperationType op, int argc, char** argv)
 		return removeFile(argc, argv);
 	}else if(op == FETCH_FILE)
 	{
-		return fetchFile();
+		return fetchFile(argc, argv);
 	}else if(op == DEFRAG_VAULT)
 	{
 		return defragVault();
 	}else if(op == GET_VAULT_STATUS)
 	{
-		return getVaultStatus();
+		return getVaultStatus(argc, argv);
 	}else if(op == INVALID_OPERATION)
 	{
 		return -1;

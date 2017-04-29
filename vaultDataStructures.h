@@ -37,7 +37,7 @@ typedef struct RepoMetaData
 typedef struct DataBlock
 {
 	off_t blockAbsoluteOffset;
-	ssize_t blockNumBytes;
+	ssize_t blockNumBytes; // size including the delimiters
 }DataBlock;
 
 typedef struct FileMetaData // AKA FileAllocationTableEntry

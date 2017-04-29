@@ -7,6 +7,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "initVault.h"
+#include "vaultIO.h"
+#include "vaultDataStructures.h"
+
 int defragVault ();
 
 #endif

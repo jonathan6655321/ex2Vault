@@ -99,6 +99,20 @@ echo ======= tests for listFiles.c ======
 
 ./vault my_repository.vlt list
 
+echo ======= tests for fetchFile.c ======
+
+
+./vault my_repository.vlt fetch data_filter10.c
+
+result=$(diff -y -W 72 data_filter10.c folder1/folder2/data_filter10.c)
+
+if [ $? -eq 0 ]
+then
+        echo "OK: passed fetchFile.c test"
+else
+        echo "FAILED!!! fetchFile.c test"
+        echo "$result"
+fi
 
 
 echo ======= tests for removeFile.c ======
@@ -126,6 +140,38 @@ if [ "$var" == "1" ]; then
 else
 	echo OK: passed removeFile.c Test
 fi
+
+
+
+echo ======= tests for getFileStatus.c ======
+
+
+
+./vault my_repository.vlt init 510K
+var=0
+for i in `seq 1 10`
+do
+	
+	res=$(./vault my_repository.vlt add folder1/folder2/data_filter"$i".c)
+	if [ "$res" != "Result: data_filter$i.c inserted" ]; then
+		echo FAIL!!! on addFile.c , file $i
+		var=1		 
+	fi
+	
+done
+
+if [ "$var" == "1" ]; then
+	echo FAILED add.c TEST
+else
+	echo OK: addFile.c passed for 100 file insert
+fi
+
+./vault my_repository.vlt rm data_filter5.c
+
+./vault my_repository.vlt rm data_filter1.c
+./vault my_repository.vlt list
+
+./vault my_repository.vlt status
 
 echo ========================================
 echo ============ TESTS DONE: ===============

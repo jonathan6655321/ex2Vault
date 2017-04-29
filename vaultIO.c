@@ -143,8 +143,6 @@ ssize_t readFileAllocationTableFromVault(FileMetaData *fileAllocationTable, int 
 
 int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssize_t absoluteOffsetInVault)
 {
-	int totalBytesWritten = 0;
-	char *buffer = malloc(BUFFER_SIZE*sizeof(char));
 
 	if(lseekToStartOfFile(newFileDescriptor) < 0)
 	{
@@ -170,34 +168,7 @@ int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssi
 		return -1;
 	}
 
-
-	int bytesRead;
-	int bytesWritten;
-	while(totalBytesWritten < fileSize)
-	{
-		if(fileSize - totalBytesWritten < BUFFER_SIZE)
-		{
-			bytesRead = read(newFileDescriptor, buffer, fileSize - totalBytesWritten);
-		}
-		else
-		{
-			bytesRead = read(newFileDescriptor, buffer, BUFFER_SIZE);
-		}
-		if(bytesRead < 0)
-		{
-			printf("Error: read failed\n\n");
-			return -1;
-		}
-
-		bytesWritten = write(vaultFileDescriptor, buffer, bytesRead);
-		if(bytesRead < 0)
-		{
-			printf("Error: write failed\n\n");
-			return -1;
-		}
-
-		totalBytesWritten += bytesWritten;
-	}
+	bufferedWriteFromFileToFile(newFileDescriptor, vaultFileDescriptor, fileSize);
 
 	if (writeEndDelimiter(vaultFileDescriptor)  != NUM_DELIMITER_CHARS)
 	{
@@ -205,7 +176,6 @@ int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssi
 		return -1;
 	}
 
-	free(buffer);
 	return 1;
 }
 
@@ -272,4 +242,54 @@ int writeEndDelimiter(int vaultFileDescriptor)
 {
 	char *endDelimiter = END_OF_FILE_DELIMITER;
 	return write(vaultFileDescriptor, endDelimiter, 8);
+}
+
+int bufferedWriteFromFileToFile(int fromFileDescriptor, int toFileDescriptor, ssize_t numBytesToWrite)
+{
+	int totalBytesWritten = 0;
+	char *buffer = malloc(BUFFER_SIZE*sizeof(char));
+	if (buffer == NULL)
+	{
+		printf("Error: malloc failed\n\n");
+		return -1;
+	}
+
+	int bytesRead;
+	int bytesWritten;
+	while(totalBytesWritten < numBytesToWrite)
+	{
+		if(numBytesToWrite - totalBytesWritten < BUFFER_SIZE)
+		{
+			bytesRead = read(fromFileDescriptor, buffer, numBytesToWrite - totalBytesWritten);
+		}
+		else
+		{
+			bytesRead = read(fromFileDescriptor, buffer, BUFFER_SIZE);
+		}
+		if(bytesRead < 0)
+		{
+			printf("Error: read failed\n\n");
+			return -1;
+		}
+
+		bytesWritten = write(toFileDescriptor, buffer, bytesRead);
+		if(bytesRead < 0)
+		{
+			printf("Error: write failed\n\n");
+			return -1;
+		}
+
+		totalBytesWritten += bytesWritten;
+	}
+
+	free(buffer);
+
+	if (totalBytesWritten != numBytesToWrite)
+	{
+		return -1;
+	}
+	else
+	{
+		return 1;
+	}
 }
