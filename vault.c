@@ -5,10 +5,10 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "addFile.h"
 #include "supportedOperations.h"
 #include "initVault.h"
 #include "listFiles.h"
-#include "addFile.h"
 #include "removeFile.h"
 #include "fetchFile.h"
 #include "defragVault.h"

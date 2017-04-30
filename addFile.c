@@ -1,3 +1,5 @@
+#include "addFile.h"
+
 #include <stdio.h>
 #include <time.h>
 #include <sys/types.h>
@@ -12,7 +14,6 @@
 #include "vaultDataStructures.h"
 
 
-#include "addFile.h"
 // $./vault my_repository.vlt add /some/path/to/file_name
 int addFile (int argc, char** argv)
 {
@@ -54,8 +55,16 @@ int addFile (int argc, char** argv)
 			printf("Failed Malloc\n");
 			return -1;
 		}
-	readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor);
-	readFileAllocationTableFromVault(fileAllocationTable, vaultFileDescriptor);
+
+	if (readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor) < 0)
+	{
+		return -1;
+	}
+
+	if (readFileAllocationTableFromVault(fileAllocationTable, vaultFileDescriptor) < 0)
+	{
+		return -1;
+	}
 
 	ssize_t addedFileSize = newFileStat.st_size;
 	if(vaultHasEnoughSpaceForFile(addedFileSize, repoMetaData) < 0)
@@ -78,34 +87,27 @@ int addFile (int argc, char** argv)
 		return -1;
 	}
 
-
-	if(naiveWriteFileToVault(newFileDescriptor, vaultFileDescriptor, repoMetaData) < 0)
-	{
-		printf("Error: failed writing file to vault\n\n");
-		return -1;
-	}
-
-	updateRepoMetaDataAfterAddFile(&repoMetaData, addedFileSize);
-//	printRepoMetaData(repoMetaData);
-
 	DataBlock *addedFileDataBlocks = malloc(sizeof(DataBlock)*MAX_BLOCKS_PER_FILE);
 	if(addedFileDataBlocks == NULL)
 	{
 		printf("Failed Malloc");
 		return -1;
 	}
-	addedFileDataBlocks[0].blockAbsoluteOffset = REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE + repoMetaData.sizeOfAllFilesInRepo
-			- (addedFileSize + SIZE_OF_BOTH_DELIMITERS);
-	addedFileDataBlocks[0].blockNumBytes = addedFileSize + SIZE_OF_BOTH_DELIMITERS;
 
-//	printf("absolute offset: %zd\nnum bytes: %zd\n",
-//			addedFileDataBlocks[0].blockAbsoluteOffset, addedFileDataBlocks[0].blockNumBytes);
+	if(writeFileToVault(newFileDescriptor, vaultFileDescriptor, repoMetaData,
+			fileAllocationTable, addedFileDataBlocks, addedFileSize) < 0)
+	{
+		printf("Error: failed writing file to vault\n\n");
+		return -1;
+	}
+
+	updateRepoMetaDataAfterAddFile(&repoMetaData, addedFileSize);
+
 
 	FileMetaData addedFileMetaData;
 	createAddedFileMetaData (addedFileName, addedFileSize,
 			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, 1, addedFileDataBlocks, &addedFileMetaData);
 	memcpy(fileAllocationTable + (repoMetaData.numFilesInVault -1) , &addedFileMetaData, FILE_META_DATA_SIZE);
-//	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault);
 
 	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
 	{
@@ -162,13 +164,101 @@ int isUniqeFileName(char *fileName, FileMetaData fileAllocationTable[MAX_NUM_FIL
 	return 1;
 }
 
-int naiveWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, RepoMetaData repoMetaData)
+
+int writeFileToVault(int newFileDescriptor, int vaultFileDescriptor,
+		RepoMetaData repoMetaData, FileMetaData *fileAllocationTable, DataBlock *addedFileDataBlocks, ssize_t addedFileSize)
 {
-	ssize_t absoluteOffsetInVault = REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE + repoMetaData.sizeOfAllFilesInRepo;
-	if(bufferedWriteFileToVault(newFileDescriptor, vaultFileDescriptor, absoluteOffsetInVault) < 0)
+	int numFilesInVault = repoMetaData.numFilesInVault;
+	int numBlocks = getNumBlocksInVault(fileAllocationTable, numFilesInVault);
+
+	DataBlock **allBlocksPointers = malloc(numBlocks*sizeof(DataBlock*));
+	if (allBlocksPointers == NULL)
+	{
+		printf("Error: malloc failed\n\n");
+		return -1;
+	}
+
+	if(loadAllBlocksPointers(allBlocksPointers, fileAllocationTable, numFilesInVault) != numBlocks)
+	{
+		printf("Error: this should not have happened...\n\n");
+		return -1;
+	}
+
+	sortDataBlocksPointersByOffset(allBlocksPointers, numBlocks);
+
+	int numGaps = numBlocks+1;
+
+
+	Gap *allGapsArray = malloc((numGaps)*sizeof(Gap)); // 1 gap between each block  and after/before edges
+	if ( allGapsArray == NULL )
+	{
+		printf("Error: malloc failed\n\n");
+	}
+
+	initAllGapsArray(allGapsArray, allBlocksPointers, numBlocks, repoMetaData.repositoryTotalSize);
+
+	Gap **allGapsPointersArray = malloc((numGaps)*sizeof(Gap*)); // 1 gap between each block  and after/before edges
+	if ( allGapsPointersArray == NULL )
+	{
+		printf("Error: malloc failed\n\n");
+	}
+
+	int i;
+	for(i=0; i < numGaps; i++)
+	{
+		allGapsPointersArray[i] = &allGapsArray[i];
+	}
+
+	sortGapsPointersByGapSize(allGapsPointersArray, numGaps);
+
+
+	for (i=0; i<MAX_BLOCKS_PER_FILE; i++)
+	{
+		(addedFileDataBlocks[i]).blockAbsoluteOffset = -1;
+		(addedFileDataBlocks[i]).blockNumBytes = -1;
+	}
+
+	int numBlocksFragmentedInto = findGapsToWriteFileTo(allGapsPointersArray, addedFileDataBlocks, numGaps, addedFileSize);
+	if (numBlocksFragmentedInto <= 0  || numBlocksFragmentedInto > MAX_BLOCKS_PER_FILE)
+	{
+		printf("Error: cannot insert file. Must fragment into to many parts\n\n");
+		return -1;
+	}
+
+
+	if(lseekToStartOfFile(newFileDescriptor) < 0)
 	{
 		return -1;
 	}
+
+
+	for (i=0; i < numBlocksFragmentedInto; i++)
+	{
+		if (lseekToOffset(vaultFileDescriptor, (addedFileDataBlocks[i]).blockAbsoluteOffset) < 0)
+		{
+			return -1;
+		}
+
+		if (writeStartDelimiter(vaultFileDescriptor) < 0)
+		{
+			return -1;
+		}
+
+		if((bufferedWriteFromFileToFile(newFileDescriptor, vaultFileDescriptor,
+				(addedFileDataBlocks[i]).blockNumBytes - SIZE_OF_BOTH_DELIMITERS))
+				< 0)
+		{
+			return -1;
+		}
+
+		if (writeEndDelimiter(vaultFileDescriptor) < 0)
+		{
+			return -1;
+		}
+	}
+
+	free(allGapsPointersArray);
+	free(allBlocksPointers);
 	return 1;
 }
 
@@ -196,4 +286,90 @@ int createAddedFileMetaData(char addedFileName[MAX_CHARS_IN_FILE_NAME], ssize_t 
 		(*newFileMetaData).fileDataBlocks[i].blockNumBytes = addedFileDataBlocks->blockNumBytes;
 	}
 	return 1;
+}
+
+void initAllGapsArray(Gap *allGapsArray, DataBlock **allBlocksPointersSortedByOffset, int numBlocks, ssize_t repoTotalSize)
+{
+	// first gap:
+	allGapsArray[0].gapNumBytes = (*allBlocksPointersSortedByOffset[0]).blockAbsoluteOffset - (REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
+	allGapsArray[0].gapAbsoluteOffset = (REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
+
+	// mid gaps:
+	int i;
+	ssize_t prevBlockEndsAt;
+	ssize_t currentBlockStartsAt;
+	for (i=1; i < numBlocks; i++)
+	{
+		prevBlockEndsAt = ((*allBlocksPointersSortedByOffset[i-1]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[i-1]).blockNumBytes);
+		currentBlockStartsAt = (*allBlocksPointersSortedByOffset[i]).blockAbsoluteOffset;
+		allGapsArray[i].gapNumBytes = currentBlockStartsAt - prevBlockEndsAt;
+		allGapsArray[i].gapAbsoluteOffset = prevBlockEndsAt;
+	}
+
+	// end gap:
+	allGapsArray[numBlocks].gapNumBytes = repoTotalSize -
+			((*allBlocksPointersSortedByOffset[numBlocks]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[numBlocks]).blockNumBytes);
+
+	allGapsArray[numBlocks].gapAbsoluteOffset =
+			((*allBlocksPointersSortedByOffset[numBlocks]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[numBlocks]).blockNumBytes);
+}
+
+void sortGapsPointersByGapSize(Gap **allGapsPointers, int numGaps)
+{
+	if (numGaps <= 1)
+	{
+		return;
+	}
+
+	Gap *tempGapPointer;
+	int i;
+	int j;
+	for (i=1; i < numGaps; i++)
+	{
+		j = i;
+		while ( j >= 1 && (*allGapsPointers[j]).gapNumBytes < (*allGapsPointers[j-1]).gapNumBytes)
+		{
+			tempGapPointer = allGapsPointers[j-1];
+			allGapsPointers[j-1] = allGapsPointers[j];
+			allGapsPointers[j] = tempGapPointer;
+			j--;
+		}
+	}
+}
+
+// returns number of blocks fragmented into, or -1 if cannot insert
+// inits addedFileDataBlocks to hold correct values for writing
+int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlocks, int numGaps, ssize_t addedFileSize)
+{
+	ssize_t remainingBytesToAssignBlocks = addedFileSize;
+
+	int i;
+	int j;
+	for (i=0; i<MAX_BLOCKS_PER_FILE; i++)
+	{
+		// -i is because if we iterate on another i we have already assigned data to the max gap
+		for (j=0; j < numGaps - i; j++)
+		{
+			if(remainingBytesToAssignBlocks <= (*allGapsPointersArray[j]).gapNumBytes - SIZE_OF_BOTH_DELIMITERS)
+			{
+				(addedFileDataBlocks[i]).blockAbsoluteOffset = (*allGapsPointersArray[j]).gapAbsoluteOffset;
+				(addedFileDataBlocks[i]).blockNumBytes = remainingBytesToAssignBlocks + SIZE_OF_BOTH_DELIMITERS;
+			}
+			return i;
+		}
+		// reached end, with no gap large enough for remaining data
+		// assign as much as possible to biggest gap and try again with another iteration
+		// if this is the last iteration you cannot add the file with this number of blocks!
+		if (i == MAX_BLOCKS_PER_FILE -1)
+		{
+			return -1;
+		}
+		else
+		{
+			(addedFileDataBlocks[i]).blockAbsoluteOffset = (*allGapsPointersArray[j]).gapAbsoluteOffset;
+			(addedFileDataBlocks[i]).blockNumBytes = (*allGapsPointersArray[j]).gapNumBytes;
+			remainingBytesToAssignBlocks -= ((*allGapsPointersArray[j]).gapNumBytes - SIZE_OF_BOTH_DELIMITERS) ;
+		}
+	}
+	return i;
 }

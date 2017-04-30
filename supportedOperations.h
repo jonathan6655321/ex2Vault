@@ -8,9 +8,9 @@
 #include <unistd.h>
 #include <time.h>
 
+#include "addFile.h"
 #include "initVault.h"
 #include "listFiles.h"
-#include "addFile.h"
 #include "removeFile.h"
 #include "fetchFile.h"
 #include "defragVault.h"

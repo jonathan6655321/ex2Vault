@@ -79,6 +79,7 @@ int defragVault(int argc, char** argv)
 	free(allBlocksPointers);
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
+	return 1;
 }
 
 int writeBlockToOffsetMinusShift(ssize_t blockAbsoluteOffset, ssize_t totalAccumulatedGap, ssize_t blockNumBytes

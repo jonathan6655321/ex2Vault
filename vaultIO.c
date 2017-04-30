@@ -139,7 +139,7 @@ ssize_t readFileAllocationTableFromVault(FileMetaData *fileAllocationTable, int 
 }
 
 
-int bufferedWriteFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssize_t absoluteOffsetInVault)
+int bufferedWriteEntireFileToVault(int newFileDescriptor, int vaultFileDescriptor, ssize_t absoluteOffsetInVault)
 {
 
 	if(lseekToStartOfFile(newFileDescriptor) < 0)
