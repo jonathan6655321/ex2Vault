@@ -116,10 +116,10 @@ else
         echo "$result"
 fi
 
-
+rm data_filter10.c
 ./vault my_repository.vlt fetch data_filter3.c
 
-result=$(diff -y -W 72 data_filter10.c folder1/folder2/data_filter10.c)
+result=$(diff -y -W 72 data_filter3.c folder1/folder2/data_filter3.c)
 
 if [ $? -eq 0 ]
 then
@@ -130,6 +130,7 @@ else
 fi
 
 
+rm data_filter3.c
 
 echo ======= tests for removeFile.c ======
 
@@ -182,8 +183,10 @@ else
 	echo OK: addFile.c passed for 100 file insert
 fi
 
+./vault my_repository.vlt status
 ./vault my_repository.vlt rm data_filter5.c
 
+./vault my_repository.vlt status
 ./vault my_repository.vlt rm data_filter1.c
 ./vault my_repository.vlt list
 
@@ -211,6 +214,7 @@ else
         echo "FAILED!!! fetchFile.c test"
 fi
 
+rm data_filter3.c
 
 echo ========================================
 echo ============ TESTS DONE: ===============

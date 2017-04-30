@@ -73,7 +73,11 @@ double getFragmentationRatio(FileMetaData *fileAllocationTable, int numFilesInVa
 		return -1;
 	}
 
+	printAllBlocks(allBlocks, numBlocks);
+	printf("+++++++++++++++++++++++\n");
 	sortDataBlocksByOffset(allBlocks, numBlocks);
+
+	printAllBlocks(allBlocks, numBlocks);
 
 	int firstDelimiterToLastDelimiter =
 			(allBlocks[numBlocks -1].blockAbsoluteOffset + allBlocks[numBlocks -1].blockNumBytes)
@@ -137,6 +141,6 @@ void printAllBlocks(DataBlock *allBlocks, int numBlocks)
 	int i;
 	for (i=0; i < numBlocks; i++)
 	{
-		printf("%zd\n", allBlocks[i].blockAbsoluteOffset);
+		printf("block %d offset: %zd size: %zd\n",i, allBlocks[i].blockAbsoluteOffset, allBlocks[i].blockNumBytes);
 	}
 }
