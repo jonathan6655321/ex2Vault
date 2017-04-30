@@ -2,21 +2,31 @@
 
 gcc -o vault  *.c
 
-./vault v.vlt init 2M
+./vault v.vlt init 4M
+
+	rm a2MegaFile
 
 var=1
 
-for i in `seq 1 100`
+for i in `seq 1 6`
 do
 
-
-	./vault v.vlt add folder1/folder2/data_filter.c
 	
 	./vault v.vlt add folder1/folder2/data_filter$i.c
-	./vault v.vlt fetch data_filter.c
 		
-	
-	result=$(diff -y -W 72 data_filter.c folder1/folder2/data_filter.c)
+done
+
+	./vault v.vlt rm data_filter1.c
+
+	./vault v.vlt rm data_filter3.c
+
+	./vault v.vlt rm data_filter5.c
+
+	./vault v.vlt add folder1/folder2/a2MegaFile
+
+
+	./vault v.vlt fetch a2MegaFile
+	result=$(diff -y -W 72 a2MegaFile folder1/folder2/a2MegaFile)
 
 if [ $? -eq 0 ]
 then
@@ -28,11 +38,11 @@ else
 fi
 
 
-	rm data_filter.c
-	./vault v.vlt rm data_filter.c
+#	rm a2MegaFile
+#	./vault v.vlt rm a2MegaFile
 	
-	./vault v.vlt defrag
-done
+#	./vault v.vlt defrag
+
 
 
 if [ "$var" ==  0 ]

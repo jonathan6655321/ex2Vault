@@ -71,7 +71,7 @@ int removeFile (int argc, char** argv)
 	}
 
 
-	printf("Result: %s deleted\n\n", fileName);
+	printf("Result: %s deleted\n", fileName);
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
 	return 1;

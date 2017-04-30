@@ -131,7 +131,7 @@ int addFile (int argc, char** argv)
 	close(vaultFileDescriptor);
 	free(fileAllocationTable);
 	free(addedFileDataBlocks);
-	printf("Result: %s inserted\n\n", addedFileName); // TODO uncomment
+	printf("Result: %s inserted\n", addedFileName);
 	return 1;
 }
 
