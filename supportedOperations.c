@@ -68,6 +68,7 @@ int runOperation(OperationType op, int argc, char** argv)
 		return getVaultStatus(argc, argv);
 	}else if(op == INVALID_OPERATION)
 	{
+		printf("Error: invalid arguments\n");
 		return -1;
 	}
 

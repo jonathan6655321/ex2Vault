@@ -17,47 +17,46 @@
 #define _FILE_OFFSET_BITS 64
 
 /*
-This is the main file in the project.
-It gets the arguments from the user and calls the relevant functions.
-*/
+ This is the main file in the project.
+ It gets the arguments from the user and calls the relevant functions.
+ */
 
-int main (int argc, char **argv)
-{
-	if(argc < 3)
-	{
+int main(int argc, char **argv) {
+	int res;
+	struct timeval start, end;
+	long seconds, useconds;
+	double mtime;
+
+	// start time measurement
+	gettimeofday(&start, NULL);
+
+	if (argc < 3) {
 		printf("Error: invalid number of arguments\n\n");
-		return -1;
-	}
-		
-	OperationType op = getOperationTypeFromString(argv[2]);
-
-	if(op == INVALID_OPERATION)
-	{
-		printf("Error: invalid operation argument\n\n");
-		return -1;
-	}
-	else
-	{
-		int res;
-		struct timeval start, end;
-		long seconds, useconds;
-		double mtime;
-
-		// start time measurement
-	  gettimeofday(&start, NULL);
-
-
-		  res = runOperation(op, argc, argv);
-
 		// end time measurement and print result
 		gettimeofday(&end, NULL);
 
-		seconds  = end.tv_sec  - start.tv_sec;
+		seconds = end.tv_sec - start.tv_sec;
 		useconds = end.tv_usec - start.tv_usec;
 
-		mtime = ((seconds) * 1000 + useconds/1000.0);
+		mtime = ((seconds) * 1000 + useconds / 1000.0);
 		printf("Elapsed time: %.3f milliseconds\n", mtime);
 
-		return res;
+		return -1;
 	}
+
+	OperationType op = getOperationTypeFromString(argv[2]);
+
+	res = runOperation(op, argc, argv);
+
+	// end time measurement and print result
+	gettimeofday(&end, NULL);
+
+	seconds = end.tv_sec - start.tv_sec;
+	useconds = end.tv_usec - start.tv_usec;
+
+	mtime = ((seconds) * 1000 + useconds / 1000.0);
+	printf("Elapsed time: %.3f milliseconds\n", mtime);
+
+	return res;
 }
+
