@@ -205,7 +205,7 @@ void printFileAllocationTable(FileMetaData *fileAllocationTable, int numFilesInV
 	int i;
 	for(i=0; i < numFilesInVault; i = i+1)
 	{
-		printf("%-20s", (char*)((fileAllocationTable + i)->fileName)); // TODO alignment cool?
+		printf("%-40s", (char*)((fileAllocationTable + i)->fileName)); // TODO alignment cool?
 		ssize_t numBytes = (fileAllocationTable + i)->fileSize;
 		int j=0;
 		while (numBytes / KILO > 0)
@@ -219,8 +219,8 @@ void printFileAllocationTable(FileMetaData *fileAllocationTable, int numFilesInV
 			printf("Error: call me at 0523447550, this error should not have occured!");
 			return ;
 		}
-		printf("%zd%-10c",numBytes,(char)sizeUnits[j]); //TODO notice this rounds out the data...
-		printf("%-10o", (((fileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
+		printf("%zd%-10c",numBytes,(char)sizeUnits[j]);
+		printf("0%-10o", (((fileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
 		printf("%-20s", asctime(localtime(&((fileAllocationTable + i)->insertionDateStamp))));
 
 //		int k; // TODO if want blocks too

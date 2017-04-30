@@ -18,7 +18,6 @@
 int addFile (int argc, char** argv)
 {
 	char* addedFilePath = argv[3];
-//	printf("%s\n\n",filePath);
 	char* vaultName = argv[1];
 
 	if (argc != ADD_FILE_NUM_ARGUMENTS)
@@ -26,6 +25,7 @@ int addFile (int argc, char** argv)
 		printf("Error: wrong number of arguments for add operation\n\n");
 		return -1;
 	}
+
 
 	int newFileDescriptor = open(addedFilePath, O_RDONLY);
 	if (newFileDescriptor < 0 )
@@ -68,7 +68,11 @@ int addFile (int argc, char** argv)
 		return -1;
 	}
 
-//	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault);
+	if (repoMetaData.numFilesInVault == MAX_NUM_FILES)
+	{
+		printf("Error: max files in vault reached\n");
+		return -1;
+	}
 
 	ssize_t addedFileSize = newFileStat.st_size;
 	if(vaultHasEnoughSpaceForFile(addedFileSize, repoMetaData) < 0)
@@ -98,13 +102,21 @@ int addFile (int argc, char** argv)
 		return -1;
 	}
 
+	int numBlocksFragmentedInto;
 
-	int numBlocksFragmentedInto = writeFileToVault(newFileDescriptor, vaultFileDescriptor, repoMetaData,
-			fileAllocationTable, addedFileDataBlocks, addedFileSize);
-	if(numBlocksFragmentedInto < 0)
+	if (addedFileSize == 0)
 	{
-		printf("Error: failed writing file to vault\n\n");
-		return -1;
+		numBlocksFragmentedInto = 0;
+	}
+	else
+	{
+		numBlocksFragmentedInto = writeFileToVault(newFileDescriptor, vaultFileDescriptor, repoMetaData,
+				fileAllocationTable, addedFileDataBlocks, addedFileSize);
+		if(numBlocksFragmentedInto < 0)
+		{
+			printf("Error: failed writing file to vault\n\n");
+			return -1;
+		}
 	}
 
 	updateRepoMetaDataAfterAddFile(&repoMetaData, addedFileSize);

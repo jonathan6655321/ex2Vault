@@ -38,25 +38,26 @@ int main (int argc, char **argv)
 	}
 	else
 	{
-		  struct timeval start, end;
-		  long seconds, useconds;
-		  double mtime;
+		int res;
+		struct timeval start, end;
+		long seconds, useconds;
+		double mtime;
 
-		    // start time measurement
-		  gettimeofday(&start, NULL);
+		// start time measurement
+	  gettimeofday(&start, NULL);
 
 
-		runOperation(op, argc, argv);
+		  res = runOperation(op, argc, argv);
 
-		    // end time measurement and print result
-		    gettimeofday(&end, NULL);
+		// end time measurement and print result
+		gettimeofday(&end, NULL);
 
-		    seconds  = end.tv_sec  - start.tv_sec;
-		    useconds = end.tv_usec - start.tv_usec;
+		seconds  = end.tv_sec  - start.tv_sec;
+		useconds = end.tv_usec - start.tv_usec;
 
-		    mtime = ((seconds) * 1000 + useconds/1000.0);
-		    printf("Elapsed time: %.3f milliseconds\n", mtime);
+		mtime = ((seconds) * 1000 + useconds/1000.0);
+		printf("Elapsed time: %.3f milliseconds\n", mtime);
+
+		return res;
 	}
-	
-	return 1;
 }

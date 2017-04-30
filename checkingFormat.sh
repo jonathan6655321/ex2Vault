@@ -12,7 +12,7 @@ echo Result: file_name inserted
 ./vault my_repository.vlt add folder1/folder2/data_filter13.c
 
 echo my_file1.txt 3B 0755 Thurs Apr 06 21:18:23 2017
-./vault my_repository.vlt liSTt
+./vault my_repository.vlt liSt
 
 echo Result: file_name deleted
 ./vault my_repository.vlt rm data_filter12.c

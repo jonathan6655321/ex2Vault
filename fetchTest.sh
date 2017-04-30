@@ -44,6 +44,7 @@ fi
 #	./vault v.vlt defrag
 
 
+./vault v.vlt list
 
 if [ "$var" ==  0 ]
 then
