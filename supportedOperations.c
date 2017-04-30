@@ -40,6 +40,7 @@ OperationType getOperationTypeFromString(char* s)
 
 int runOperation(OperationType op, int argc, char** argv)
 {
+//	printf(" =================== in run operation \n\n"); // TODO uncomment
 	if(op == INIT_VAULT)
 	{
 		return initVault(argc, argv);

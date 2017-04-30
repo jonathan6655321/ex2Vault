@@ -23,6 +23,7 @@ It gets the arguments from the user and calls the relevant functions.
 
 int main (int argc, char **argv)
 {
+//	printf(" =================== in main\n\n"); // TODO uncomment
 	if(argc < 3)
 	{
 		printf("Error: invalid number of arguments\n\n");

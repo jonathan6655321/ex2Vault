@@ -49,6 +49,8 @@ int getVaultStatus (int argc, char** argv)
 	printf("%-30s%-10zd\n", "Total size:" , repoMetaData.sizeOfAllFilesInRepo);
 	printf("%-30s%-10f\n", "Fragmentation ratio:" , fragRatio);
 
+	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault); // TODO uncomment
+
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
 	return 1;
@@ -78,6 +80,9 @@ double getFragmentationRatio(FileMetaData *fileAllocationTable, int numFilesInVa
 			- allBlocks[0].blockAbsoluteOffset;
 
 	free(allBlocks);
+
+	printf("The distance between first delimiter to last: %d\n\n",firstDelimiterToLastDelimiter);
+	printf("size of all files in repo: %zd", sizeOfAllFilesInRepo);
 	return ((double)(firstDelimiterToLastDelimiter - sizeOfAllFilesInRepo) / firstDelimiterToLastDelimiter);
 }
 

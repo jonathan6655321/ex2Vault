@@ -1,4 +1,3 @@
-#include "addFile.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -9,6 +8,7 @@
 #include <string.h>
 #include <libgen.h>
 
+#include "addFile.h"
 #include "initVault.h"
 #include "vaultIO.h"
 #include "vaultDataStructures.h"
@@ -58,11 +58,13 @@ int addFile (int argc, char** argv)
 
 	if (readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor) < 0)
 	{
+		printf("??????\n");
 		return -1;
 	}
 
 	if (readFileAllocationTableFromVault(fileAllocationTable, vaultFileDescriptor) < 0)
 	{
+		printf("!!!!!!!!\n");
 		return -1;
 	}
 
@@ -90,12 +92,14 @@ int addFile (int argc, char** argv)
 	DataBlock *addedFileDataBlocks = malloc(sizeof(DataBlock)*MAX_BLOCKS_PER_FILE);
 	if(addedFileDataBlocks == NULL)
 	{
-		printf("Failed Malloc");
+		printf("Failed Malloc\n");
 		return -1;
 	}
 
-	if(writeFileToVault(newFileDescriptor, vaultFileDescriptor, repoMetaData,
-			fileAllocationTable, addedFileDataBlocks, addedFileSize) < 0)
+
+	int numBlocksFragmentedInto = writeFileToVault(newFileDescriptor, vaultFileDescriptor, repoMetaData,
+			fileAllocationTable, addedFileDataBlocks, addedFileSize);
+	if(numBlocksFragmentedInto < 0)
 	{
 		printf("Error: failed writing file to vault\n\n");
 		return -1;
@@ -103,10 +107,9 @@ int addFile (int argc, char** argv)
 
 	updateRepoMetaDataAfterAddFile(&repoMetaData, addedFileSize);
 
-
 	FileMetaData addedFileMetaData;
 	createAddedFileMetaData (addedFileName, addedFileSize,
-			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, 1, addedFileDataBlocks, &addedFileMetaData);
+			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, numBlocksFragmentedInto, addedFileDataBlocks, &addedFileMetaData);
 	memcpy(fileAllocationTable + (repoMetaData.numFilesInVault -1) , &addedFileMetaData, FILE_META_DATA_SIZE);
 
 	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
@@ -197,6 +200,9 @@ int writeFileToVault(int newFileDescriptor, int vaultFileDescriptor,
 
 	initAllGapsArray(allGapsArray, allBlocksPointers, numBlocks, repoMetaData.repositoryTotalSize);
 
+
+//	printGaps(allGapsArray, numBlocks);
+
 	Gap **allGapsPointersArray = malloc((numGaps)*sizeof(Gap*)); // 1 gap between each block  and after/before edges
 	if ( allGapsPointersArray == NULL )
 	{
@@ -259,7 +265,7 @@ int writeFileToVault(int newFileDescriptor, int vaultFileDescriptor,
 
 	free(allGapsPointersArray);
 	free(allBlocksPointers);
-	return 1;
+	return numBlocksFragmentedInto;
 }
 
 int updateRepoMetaDataAfterAddFile(RepoMetaData *repoMetaData, ssize_t addedFileSize)
@@ -290,6 +296,12 @@ int createAddedFileMetaData(char addedFileName[MAX_CHARS_IN_FILE_NAME], ssize_t 
 
 void initAllGapsArray(Gap *allGapsArray, DataBlock **allBlocksPointersSortedByOffset, int numBlocks, ssize_t repoTotalSize)
 {
+	if(numBlocks == 0)
+	{
+		allGapsArray[0].gapNumBytes = repoTotalSize - (REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
+		allGapsArray[0].gapAbsoluteOffset = (REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
+		return;
+	}
 	// first gap:
 	allGapsArray[0].gapNumBytes = (*allBlocksPointersSortedByOffset[0]).blockAbsoluteOffset - (REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
 	allGapsArray[0].gapAbsoluteOffset = (REPO_META_DATA_SIZE + FILE_ALLOCATION_TABLE_SIZE);
@@ -308,10 +320,10 @@ void initAllGapsArray(Gap *allGapsArray, DataBlock **allBlocksPointersSortedByOf
 
 	// end gap:
 	allGapsArray[numBlocks].gapNumBytes = repoTotalSize -
-			((*allBlocksPointersSortedByOffset[numBlocks]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[numBlocks]).blockNumBytes);
+			((*allBlocksPointersSortedByOffset[numBlocks-1]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[numBlocks-1]).blockNumBytes);
 
 	allGapsArray[numBlocks].gapAbsoluteOffset =
-			((*allBlocksPointersSortedByOffset[numBlocks]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[numBlocks]).blockNumBytes);
+			((*allBlocksPointersSortedByOffset[numBlocks-1]).blockAbsoluteOffset + (*allBlocksPointersSortedByOffset[numBlocks-1]).blockNumBytes);
 }
 
 void sortGapsPointersByGapSize(Gap **allGapsPointers, int numGaps)
@@ -355,7 +367,7 @@ int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlo
 				(addedFileDataBlocks[i]).blockAbsoluteOffset = (*allGapsPointersArray[j]).gapAbsoluteOffset;
 				(addedFileDataBlocks[i]).blockNumBytes = remainingBytesToAssignBlocks + SIZE_OF_BOTH_DELIMITERS;
 			}
-			return i;
+			return i + 1;
 		}
 		// reached end, with no gap large enough for remaining data
 		// assign as much as possible to biggest gap and try again with another iteration
@@ -371,5 +383,14 @@ int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlo
 			remainingBytesToAssignBlocks -= ((*allGapsPointersArray[j]).gapNumBytes - SIZE_OF_BOTH_DELIMITERS) ;
 		}
 	}
-	return i;
+	return i + 1;
 }
+
+//void printGaps( Gap *allGapsArray, int numBlocks)
+//{
+//	int i;
+//	for (i =0; i < numBlocks + 1; i++)
+//	{
+//
+//	}
+//}

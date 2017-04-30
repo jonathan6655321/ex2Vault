@@ -24,6 +24,7 @@ ssize_t writeRepoMetaDataToVault(RepoMetaData *repoMetaData, int vaultFileDescri
 		return -1;
 	}
 
+
 	ssize_t bytesWritten = write(vaultFileDescriptor, repoMetaData, REPO_META_DATA_SIZE);
 	if(bytesWritten < 0)
 	{

@@ -82,14 +82,16 @@ do
 	if [ "$res" != "Result: data_filter$i.c inserted" ]; then
 		echo FAIL!!! on addFile.c , file $i
 		var=1		 
+	else 
+		echo OK: on addFile.c , file $i
 	fi
-	
+
 done
 
 if [ "$var" == "1" ]; then
 	echo FAILED add.c TEST
 else
-	echo OK: addFile.c passed for 100 file insert
+	echo OK: addFile.c passed for 10 file insert
 fi
 
 
@@ -113,6 +115,20 @@ else
         echo "FAILED!!! fetchFile.c test"
         echo "$result"
 fi
+
+
+./vault my_repository.vlt fetch data_filter3.c
+
+result=$(diff -y -W 72 data_filter10.c folder1/folder2/data_filter10.c)
+
+if [ $? -eq 0 ]
+then
+        echo "OK: passed fetchFile.c test"
+else
+        echo "FAILED!!! fetchFile.c test"
+        echo "$result"
+fi
+
 
 
 echo ======= tests for removeFile.c ======
@@ -181,6 +197,19 @@ echo ======= tests for defragVault.c ======
 ./vault my_repository.vlt defrag
 
 ./vault my_repository.vlt status
+
+
+echo ============= another fetch after the defrag ===========
+./vault my_repository.vlt fetch data_filter3.c
+
+result=$(diff -y -W 72 data_filter10.c folder1/folder2/data_filter10.c)
+
+if [ $? -eq 0 ]
+then
+        echo "OK: passed fetchFile.c test"
+else
+        echo "FAILED!!! fetchFile.c test"
+fi
 
 
 echo ========================================
