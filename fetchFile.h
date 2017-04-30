@@ -11,6 +11,7 @@
 #include "initVault.h"
 #include "vaultIO.h"
 #include "vaultDataStructures.h"
+#include "getVaultStatus.h"
 
 #define FETCH_FILE_NUM_ARGUMENTS 4
 

@@ -81,6 +81,11 @@ int deleteRemovedFileDelimitersFromVault(char *fileName, FileMetaData *fileAlloc
 		int vaultFileDescriptor)
 {
 	DataBlock *fileDataBlocks = malloc(sizeof(DataBlock)*MAX_BLOCKS_PER_FILE);
+	if(fileDataBlocks == NULL)
+	{
+		printf("Error: failed malloc\n");
+		return -1;
+	}
 	int numValidBlocks;
 
 	int i;

@@ -74,7 +74,7 @@ int defragVault(int argc, char** argv)
 		return -1;
 	}
 
-	printf("Result: Defragmentation complete\n\n");
+	printf("Result: Defragmentation complete\n");
 	free(allBlocksPointers);
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);

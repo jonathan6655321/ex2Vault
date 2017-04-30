@@ -62,7 +62,7 @@ fi
 echo ======= tests for addFile.c ======
 
 
-./vault my_repository.vlt init 2M
+./vault my_repository.vlt init 4M
 res=$(./vault my_repository.vlt add folder1/folder2/a2MegaFile)
 if [ "$res" == "Error: not enough space for file in vault" ]; then
 	echo OK: addFile.c  not enough space for file in vault
@@ -73,9 +73,9 @@ fi
 
 
 
-./vault my_repository.vlt init 510K
+./vault my_repository.vlt init 5M
 var=0
-for i in `seq 1 10`
+for i in `seq 1 100`
 do
 	
 	res=$(./vault my_repository.vlt add folder1/folder2/data_filter"$i".c)
@@ -136,7 +136,7 @@ echo ======= tests for removeFile.c ======
 
 
 var=0
-for i in `seq 1 10`
+for i in `seq 1 100`
 do
 	
 #./vault my_repository.vlt list
@@ -164,9 +164,9 @@ echo ======= tests for getFileStatus.c ======
 
 
 
-./vault my_repository.vlt init 510K
+./vault my_repository.vlt init 5M
 var=0
-for i in `seq 1 10`
+for i in `seq 1 100`
 do
 	
 	res=$(./vault my_repository.vlt add folder1/folder2/data_filter"$i".c)
@@ -215,6 +215,21 @@ else
 fi
 
 rm data_filter3.c
+
+
+./vault my_repository.vlt fetch data_filter27.c
+
+result=$(diff -y -W 72 data_filter27.c folder1/folder2/data_filter27.c)
+
+if [ $? -eq 0 ]
+then
+        echo "OK: passed fetchFile.c test"
+else
+        echo "FAILED!!! fetchFile.c test"
+fi
+
+rm data_filter27.c
+
 
 echo ========================================
 echo ============ TESTS DONE: ===============

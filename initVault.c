@@ -60,7 +60,7 @@ int initVault (int argc, char **argv)
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
 
-//	printf("Result: A vault created\n\n"); // TODO uncomment
+	printf("Result: A vault created\n\n"); // TODO uncomment
 	return 1;
 }
 

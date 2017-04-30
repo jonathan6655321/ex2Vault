@@ -109,16 +109,11 @@ int addFile (int argc, char** argv)
 
 	updateRepoMetaDataAfterAddFile(&repoMetaData, addedFileSize);
 
-//	printf("****num files in vault: %d\n\n", repoMetaData.numFilesInVault);
-
-//	printAllBlocks(addedFileDataBlocks, numBlocksFragmentedInto);
-
 	FileMetaData addedFileMetaData;
 	createAddedFileMetaData (addedFileName, addedFileSize,
 			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, numBlocksFragmentedInto, addedFileDataBlocks, &addedFileMetaData);
 	memcpy(fileAllocationTable + (repoMetaData.numFilesInVault -1) , &addedFileMetaData, FILE_META_DATA_SIZE);
 
-//	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault -1);
 
 	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
 	{

@@ -9,6 +9,11 @@
 
 OperationType getOperationTypeFromString(char* s)
 {
+	int i;
+	for(i = 0; s[i]; i++){
+	  s[i] = tolower(s[i]);
+	}
+
 	if(strcmp(s,"init")==0)
 	{
 		return INIT_VAULT;
@@ -40,7 +45,6 @@ OperationType getOperationTypeFromString(char* s)
 
 int runOperation(OperationType op, int argc, char** argv)
 {
-//	printf(" =================== in run operation \n\n"); // TODO uncomment
 	if(op == INIT_VAULT)
 	{
 		return initVault(argc, argv);

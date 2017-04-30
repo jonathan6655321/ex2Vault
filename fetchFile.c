@@ -62,11 +62,14 @@ int fetchFile (int argc, char** argv)
 
 	if (writeFileDataToFile(newFileDescriptor, vaultFileDescriptor, fileName, fileAllocationTable, repoMetaData.numFilesInVault) < 0)
 	{
+		close(newFileDescriptor);
+		remove(fileName);
 		return -1;
 	}
 
-
+	printf("Result: %s created\n", fileName);
 	close(vaultFileDescriptor);
+	close(newFileDescriptor);
 	free(fileAllocationTable);
 	return 1;
 }
