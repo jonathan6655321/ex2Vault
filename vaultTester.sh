@@ -205,7 +205,7 @@ echo ======= tests for defragVault.c ======
 echo ============= another fetch after the defrag ===========
 ./vault my_repository.vlt fetch data_filter3.c
 
-result=$(diff -y -W 72 data_filter10.c folder1/folder2/data_filter10.c)
+result=$(diff -y -W 72 data_filter3.c folder1/folder2/data_filter3.c)
 
 if [ $? -eq 0 ]
 then

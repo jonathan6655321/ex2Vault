@@ -31,6 +31,12 @@ gcc -o vault *c
 ./vault my_repository.vlt rm data_filter1.c
 
 ./vault my_repository.vlt status 
+
+
+./vault my_repository.vlt add folder1/folder2/a2MegaFile
+
+
+./vault my_repository.vlt status 
  
 ./vault my_repository.vlt defrag 
  

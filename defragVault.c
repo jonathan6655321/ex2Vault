@@ -7,6 +7,7 @@
 
 #include "defragVault.h"
 
+#define ZEROS "00000000"
 
 int defragVault(int argc, char** argv)
 {
@@ -66,8 +67,6 @@ int defragVault(int argc, char** argv)
 		printf("Error: defrag failed\n\n");
 		return -1;
 	}
-
-	// TODO zero out the delimiters left behind? ??
 
 	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
 	{
@@ -176,6 +175,18 @@ int defrag(int vaultFileDescriptor, DataBlock  **allBlocksPointers, int numBlock
 			return -1;
 		}
 
+		if(zeroDelimitersAtOffset((*allBlocksPointers[i]).blockAbsoluteOffset, vaultFileDescriptor) < 0)
+		{
+			printf("Error writing\n");
+			return -1;
+		}
+
+		if(zeroDelimitersAtOffset((*allBlocksPointers[i]).blockAbsoluteOffset + (*allBlocksPointers[i]).blockNumBytes - NUM_DELIMITER_CHARS*sizeof(char) , vaultFileDescriptor) < 0)
+		{
+			printf("Error writing\n");
+			return -1;
+		}
+
 		(*allBlocksPointers[i]).blockAbsoluteOffset -= totalAccumulatedGap;
 
 		totalAccumulatedGap += nextGap;
@@ -223,4 +234,10 @@ void sortDataBlocksPointersByOffset(DataBlock **allBlocksPointers, int numBlocks
 			j--;
 		}
 	}
+}
+
+int zeroDelimitersAtOffset(ssize_t offset, int vaultFileDescriptor)
+{
+	char *zeros = ZEROS;
+	return write(vaultFileDescriptor, zeros, 8);
 }

@@ -75,7 +75,7 @@ double getFragmentationRatio(FileMetaData *fileAllocationTable, int numFilesInVa
 
 //	printAllBlocks(allBlocks, numBlocks);  // TODO might need this
 //	printf("+++++++++++++++++++++++\n");
-//	sortDataBlocksByOffset(allBlocks, numBlocks);
+	sortDataBlocksByOffset(allBlocks, numBlocks);
 //
 //	printAllBlocks(allBlocks, numBlocks);
 
