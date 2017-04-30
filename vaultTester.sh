@@ -82,8 +82,8 @@ do
 	if [ "$res" != "Result: data_filter$i.c inserted" ]; then
 		echo FAIL!!! on addFile.c , file $i
 		var=1		 
-	else 
-		echo OK: on addFile.c , file $i
+#	else 
+#		echo OK: on addFile.c , file $i
 	fi
 
 done

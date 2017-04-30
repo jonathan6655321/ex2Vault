@@ -30,7 +30,6 @@ int listFiles (int argc, char** argv)
 	readRepoMetaDataFromVault(&repoMetaData, vaultFileDescriptor);
 
 	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault);
-//	printRepoMetaData(repoMetaData); // TODO comment this out!
 
 	free(fileAllocationTable);
 	close(vaultFileDescriptor);
