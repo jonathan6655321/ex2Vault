@@ -197,4 +197,5 @@
 //	free(writeBuffer);
 //
 //	printf("%zd characters requested, %zd characters read, %zd are printable\n", maxBytesToRead, totalBytesRead, printedChars);
-//}
+//}aaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa

@@ -200,13 +200,13 @@ int lseekToOffset(int fileDescriptor, ssize_t offset)
 	return 1;
 }
 
-void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInVault)
+void printFileAllocationTable(FileMetaData *fileAllocationTable, int numFilesInVault)
 {
 	int i;
 	for(i=0; i < numFilesInVault; i = i+1)
 	{
-		printf("%-20s", (char*)((FileAllocationTable + i)->fileName)); // TODO alignment cool?
-		ssize_t numBytes = (FileAllocationTable + i)->fileSize;
+		printf("%-20s", (char*)((fileAllocationTable + i)->fileName)); // TODO alignment cool?
+		ssize_t numBytes = (fileAllocationTable + i)->fileSize;
 		int j=0;
 		while (numBytes / KILO > 0)
 		{
@@ -220,8 +220,18 @@ void printFileAllocationTable(FileMetaData *FileAllocationTable, int numFilesInV
 			return ;
 		}
 		printf("%zd%-10c",numBytes,(char)sizeUnits[j]); //TODO notice this rounds out the data...
-		printf("%-10o", (((FileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
-		printf("%-20s", asctime(localtime(&((FileAllocationTable + i)->insertionDateStamp))));
+		printf("%-10o", (((fileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
+		printf("%-20s", asctime(localtime(&((fileAllocationTable + i)->insertionDateStamp))));
+
+		int k;
+		ssize_t blockOffset;
+		ssize_t blockSize;
+		for (k=0; k < fileAllocationTable[i].numValidBlocks; k++)
+		{
+			blockOffset = fileAllocationTable[i].fileDataBlocks[k].blockAbsoluteOffset;
+			blockSize = fileAllocationTable[i].fileDataBlocks[k].blockNumBytes;
+			printf("Block number %d offset: %zd , size: %zd\n\n",k, blockOffset, blockSize );
+		}
 	}
 }
 

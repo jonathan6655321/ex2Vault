@@ -68,6 +68,8 @@ int addFile (int argc, char** argv)
 		return -1;
 	}
 
+//	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault);
+
 	ssize_t addedFileSize = newFileStat.st_size;
 	if(vaultHasEnoughSpaceForFile(addedFileSize, repoMetaData) < 0)
 	{
@@ -107,10 +109,16 @@ int addFile (int argc, char** argv)
 
 	updateRepoMetaDataAfterAddFile(&repoMetaData, addedFileSize);
 
+	printf("****num files in vault: %d\n\n", repoMetaData.numFilesInVault);
+
+	printAllBlocks(addedFileDataBlocks, numBlocksFragmentedInto);
+
 	FileMetaData addedFileMetaData;
 	createAddedFileMetaData (addedFileName, addedFileSize,
 			repoMetaData.lastModificationTimeStamp, newFileStat.st_mode, numBlocksFragmentedInto, addedFileDataBlocks, &addedFileMetaData);
 	memcpy(fileAllocationTable + (repoMetaData.numFilesInVault -1) , &addedFileMetaData, FILE_META_DATA_SIZE);
+
+	printFileAllocationTable(fileAllocationTable, repoMetaData.numFilesInVault -1);
 
 	if (writeFileAllocationTableToVault(fileAllocationTable, vaultFileDescriptor) < 0)
 	{
@@ -355,6 +363,7 @@ int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlo
 {
 	ssize_t remainingBytesToAssignBlocks = addedFileSize;
 
+
 	int i;
 	int j;
 	for (i=0; i<MAX_BLOCKS_PER_FILE; i++)
@@ -362,12 +371,21 @@ int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlo
 		// -i is because if we iterate on another i we have already assigned data to the max gap
 		for (j=0; j < numGaps - i; j++)
 		{
-			if(remainingBytesToAssignBlocks <= (*allGapsPointersArray[j]).gapNumBytes - SIZE_OF_BOTH_DELIMITERS)
+//			printf("In Gap Number %d\n\n", j);
+//			printf("Size of current gap: %zd\n\n",  (*allGapsPointersArray[j]).gapNumBytes - SIZE_OF_BOTH_DELIMITERS);
+//			printf("remaingin bytes to assign blocks: %zd\n\n", remainingBytesToAssignBlocks);
+
+			if (((*allGapsPointersArray[j]).gapNumBytes) <= SIZE_OF_BOTH_DELIMITERS)
 			{
+				continue;
+			}
+			if(remainingBytesToAssignBlocks <= ((*allGapsPointersArray[j]).gapNumBytes - SIZE_OF_BOTH_DELIMITERS))
+			{
+//				printf("Did this happer???\n\n");
 				(addedFileDataBlocks[i]).blockAbsoluteOffset = (*allGapsPointersArray[j]).gapAbsoluteOffset;
 				(addedFileDataBlocks[i]).blockNumBytes = remainingBytesToAssignBlocks + SIZE_OF_BOTH_DELIMITERS;
+				return i + 1;
 			}
-			return i + 1;
 		}
 		// reached end, with no gap large enough for remaining data
 		// assign as much as possible to biggest gap and try again with another iteration
@@ -386,11 +404,11 @@ int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlo
 	return i + 1;
 }
 
-//void printGaps( Gap *allGapsArray, int numBlocks)
-//{
-//	int i;
-//	for (i =0; i < numBlocks + 1; i++)
-//	{
-//
-//	}
-//}
+void printGaps( Gap *allGapsArray, int numBlocks)
+{
+	int i;
+	for (i =0; i < numBlocks + 1; i++)
+	{
+		printf("Gap number %d offset is %zd and size is: %zd\n\n", i, allGapsArray[i].gapAbsoluteOffset, allGapsArray[i].gapNumBytes);
+	}
+}

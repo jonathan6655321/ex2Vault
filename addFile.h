@@ -42,4 +42,6 @@ void initAllGapsArray(Gap *allGapsArray, DataBlock **allBlocksPointersSortedByOf
 void sortGapsPointersByGapSize(Gap **allGapsPointers, int numGaps);
 int findGapsToWriteFileTo(Gap **allGapsPointersArray,DataBlock *addedFileDataBlocks, int numGaps, ssize_t addedFileSize);
 
+void printGaps( Gap *allGapsArray, int numBlocks);
+
 #endif
