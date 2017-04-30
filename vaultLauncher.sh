@@ -32,6 +32,9 @@ gcc -o vault *c
 
 ./vault my_repository.vlt status 
  
+./vault my_repository.vlt defrag 
+ 
+./vault my_repository.vlt status 
 
 #./vault my_repository.vlt add folder1/folder2/data_filter3.c 
 #./vault my_repository.vlt add folder1/folder2/data_filter4.c 

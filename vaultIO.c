@@ -223,15 +223,15 @@ void printFileAllocationTable(FileMetaData *fileAllocationTable, int numFilesInV
 		printf("%-10o", (((fileAllocationTable + i)->fileProtection) &(S_IRWXU | S_IRWXG | S_IRWXO))); // TODO is drive thing too?
 		printf("%-20s", asctime(localtime(&((fileAllocationTable + i)->insertionDateStamp))));
 
-		int k;
-		ssize_t blockOffset;
-		ssize_t blockSize;
-		for (k=0; k < fileAllocationTable[i].numValidBlocks; k++)
-		{
-			blockOffset = fileAllocationTable[i].fileDataBlocks[k].blockAbsoluteOffset;
-			blockSize = fileAllocationTable[i].fileDataBlocks[k].blockNumBytes;
-			printf("Block number %d offset: %zd , size: %zd\n\n",k, blockOffset, blockSize );
-		}
+//		int k; // TODO if want blocks too
+//		ssize_t blockOffset;
+//		ssize_t blockSize;
+//		for (k=0; k < fileAllocationTable[i].numValidBlocks; k++)
+//		{
+//			blockOffset = fileAllocationTable[i].fileDataBlocks[k].blockAbsoluteOffset;
+//			blockSize = fileAllocationTable[i].fileDataBlocks[k].blockNumBytes;
+//			printf("Block number %d offset: %zd , size: %zd\n\n",k, blockOffset, blockSize );
+//		}
 	}
 }
 
